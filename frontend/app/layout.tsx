@@ -54,13 +54,70 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       </head>
       <body>
         <header className="site-header">
+          {/* Logo & Tagline */}
           <div className="header-brand">
-            <a href="/" className="header-logo">
+            <a href="/" className="header-logo" title="FLORA - Trang chủ">
               FLORA<span className="logo-dot">.</span>
             </a>
             <span className="header-tagline">· Hoa tươi nghệ thuật & Quà tặng</span>
           </div>
 
+          {/* Điều hướng chính: Trang chủ, Danh mục hoa */}
+          <div className="header-nav-main">
+            <a href="/" className="nav-link">
+              Trang chủ
+            </a>
+
+            <div className="nav-dropdown">
+              <a href="/san-pham" className="nav-link nav-dropdown-toggle">
+                Danh mục hoa <span className="dropdown-arrow">▾</span>
+              </a>
+              <div className="nav-dropdown-menu">
+                <a href="/san-pham?category=hoa-bo" className="dropdown-item">
+                  <span className="dropdown-icon">💐</span>
+                  <div className="dropdown-text">
+                    <strong>Hoa bó cao cấp</strong>
+                    <small>Thiết kế sang trọng, tinh tế</small>
+                  </div>
+                </a>
+                <a href="/san-pham?category=gio-hoa" className="dropdown-item">
+                  <span className="dropdown-icon">🧺</span>
+                  <div className="dropdown-text">
+                    <strong>Giỏ hoa tươi</strong>
+                    <small>Thanh lịch cho mọi không gian</small>
+                  </div>
+                </a>
+                <a href="/san-pham?category=ke-hoa-khai-truong" className="dropdown-item">
+                  <span className="dropdown-icon">🎉</span>
+                  <div className="dropdown-text">
+                    <strong>Kệ hoa khai trương</strong>
+                    <small>Hồng phát, thịnh vượng</small>
+                  </div>
+                </a>
+                <a href="/san-pham?category=lan-ho-diep" className="dropdown-item">
+                  <span className="dropdown-icon">🪴</span>
+                  <div className="dropdown-text">
+                    <strong>Lan hồ điệp</strong>
+                    <small>Quý phái, sang trọng lâu tàn</small>
+                  </div>
+                </a>
+                <a href="/san-pham?category=hop-hoa-nghe-thuat" className="dropdown-item">
+                  <span className="dropdown-icon">🎁</span>
+                  <div className="dropdown-text">
+                    <strong>Hộp hoa nghệ thuật</strong>
+                    <small>Bất ngờ và đầy ấn tượng</small>
+                  </div>
+                </a>
+                <div className="dropdown-divider"></div>
+                <a href="/san-pham" className="dropdown-item dropdown-item-all">
+                  <span>✨ <strong>Xem tất cả sản phẩm hoa</strong></span>
+                  <span>→</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* Khung tìm kiếm */}
           <form action="/san-pham" method="GET" className="header-search">
             <span className="search-icon" aria-hidden="true">🔍</span>
             <input
@@ -70,29 +127,45 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             />
           </form>
 
-          <nav className="main-nav" aria-label="Điều hướng chính">
-            <a href="/san-pham">Sản phẩm</a>
-            <a href="/gio-hang">
-              Giỏ hàng
+          {/* Nhóm thao tác: Giỏ hàng, Đơn hàng, Nhân viên/Quản trị, Đăng nhập, Đăng ký */}
+          <nav className="header-actions" aria-label="Điều hướng người dùng">
+            <a href="/gio-hang" className="nav-action-link" title="Xem giỏ hàng">
+              <span className="action-icon">🛒</span>
+              <span className="action-text">Giỏ hàng</span>
               {cartCount > 0 && <span className="badge-count">{cartCount}</span>}
             </a>
-            <a href="/don-hang">Đơn hàng</a>
+
+            <a href="/don-hang" className="nav-action-link" title="Theo dõi đơn hàng">
+              <span className="action-icon">📦</span>
+              <span className="action-text">Đơn hàng</span>
+            </a>
 
             {isStaff && (
-              <a href="/nhan-vien" style={{ color: "#3476C2", fontWeight: 600 }}>
+              <a href="/nhan-vien" className="nav-link" style={{ color: "#3476C2", fontWeight: 700 }} title="Cổng nhân viên">
                 Nhân viên
               </a>
             )}
 
             {isAdmin && (
-              <a href="/admin" style={{ color: "#C28E34", fontWeight: 600 }}>
+              <a href="/admin" className="nav-link" style={{ color: "#C28E34", fontWeight: 700 }} title="Cổng quản trị">
                 Quản trị
               </a>
             )}
 
-            <a href="/tai-khoan" className="button button-sm button-secondary">
-              {userProfile ? (userProfile.email?.split("@")[0] || "Tài khoản") : "Đăng nhập"}
-            </a>
+            {userProfile ? (
+              <a href="/tai-khoan" className="button button-sm button-secondary" title="Hồ sơ tài khoản">
+                👤 {userProfile.email?.split("@")[0] || "Tài khoản"}
+              </a>
+            ) : (
+              <div className="auth-buttons">
+                <a href="/tai-khoan#dang-nhap" className="button button-sm auth-btn-login">
+                  Đăng nhập
+                </a>
+                <a href="/tai-khoan#dang-ky" className="button button-sm auth-btn-register">
+                  Đăng ký
+                </a>
+              </div>
+            )}
           </nav>
         </header>
 

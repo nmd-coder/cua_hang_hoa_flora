@@ -73,7 +73,7 @@ export default async function AccountPage({
         <>
           <div className="account-grid">
             {/* Login form */}
-            <form action={login} className="panel">
+            <form action={login} className="panel" id="dang-nhap">
               <h2>Đăng nhập</h2>
               <label>
                 Email
@@ -89,7 +89,7 @@ export default async function AccountPage({
             </form>
 
             {/* Registration form */}
-            <form action={register} className="panel">
+            <form action={register} className="panel" id="dang-ky">
               <h2>Đăng ký</h2>
               <label>
                 Họ và tên
