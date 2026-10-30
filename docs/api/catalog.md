@@ -1,0 +1,2 @@
+# API danh mục thử nghiệm
+Gateway: GET /api/products?q=&page=0&size=12, GET /api/products/{uuid}. Chỉ trả sản phẩm ACTIVE, tìm theo tên, size 1–50. Gateway trả 503 nếu catalog không khả dụng. API còn thiếu lọc thuộc tính, phân trang tổng số, quản trị, ảnh thật và khả năng mua hàng.

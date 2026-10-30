@@ -1,0 +1,9 @@
+CREATE TABLE checkout_intents(
+ id UUID PRIMARY KEY,user_id UUID NOT NULL,quote_id UUID NOT NULL UNIQUE,
+ idempotency_key TEXT NOT NULL,status TEXT NOT NULL CHECK(status IN ('PREPARING','PENDING','FAILED')),
+ snapshot JSONB NOT NULL,created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+ UNIQUE(user_id,idempotency_key)
+);
+ALTER TABLE orders ADD COLUMN payment_method TEXT NOT NULL DEFAULT 'COD';
+ALTER TABLE orders ADD COLUMN payment_status TEXT NOT NULL DEFAULT 'UNPAID';
+ALTER TABLE orders ADD COLUMN shipping_mode TEXT NOT NULL DEFAULT 'MOCK';

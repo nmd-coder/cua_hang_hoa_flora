@@ -1,0 +1,2 @@
+# Môi trường phát triển
+Cài Docker Desktop, khởi động engine, chép .env.example thành .env và thay mật khẩu. Chạy docker compose up --build; giao diện 127.0.0.1:3000, gateway 127.0.0.1:8080. Schema do Flyway tạo riêng; một tài khoản PostgreSQL dùng chung chỉ dành cho phát triển. Chưa được kiểm thử production, không triển khai thật.

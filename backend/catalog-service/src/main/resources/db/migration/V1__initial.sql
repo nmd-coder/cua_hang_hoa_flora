@@ -1,0 +1,4 @@
+CREATE TABLE categories (id UUID PRIMARY KEY, name TEXT NOT NULL, slug TEXT NOT NULL UNIQUE, status TEXT NOT NULL);
+CREATE TABLE products (id UUID PRIMARY KEY, category_id UUID REFERENCES categories(id), sku TEXT NOT NULL UNIQUE, name TEXT NOT NULL, slug TEXT NOT NULL UNIQUE, description TEXT, price NUMERIC(19,2) NOT NULL CHECK (price >= 0), status TEXT NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT now());
+CREATE TABLE product_images (id UUID PRIMARY KEY, product_id UUID NOT NULL REFERENCES products(id), url TEXT NOT NULL, alt_text TEXT NOT NULL, sort_order INTEGER NOT NULL DEFAULT 0, is_primary BOOLEAN NOT NULL DEFAULT false);
+CREATE UNIQUE INDEX product_one_primary_image ON product_images(product_id) WHERE is_primary;

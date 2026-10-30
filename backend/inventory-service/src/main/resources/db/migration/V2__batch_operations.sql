@@ -1,0 +1,1 @@
+CREATE TABLE reservation_batches(order_id UUID PRIMARY KEY,status TEXT NOT NULL CHECK(status IN ('HELD','RELEASED')));

@@ -1,0 +1,3 @@
+CREATE TABLE stock (item_id UUID PRIMARY KEY, on_hand INTEGER NOT NULL CHECK (on_hand >= 0), reserved INTEGER NOT NULL DEFAULT 0 CHECK (reserved >= 0 AND reserved <= on_hand), updated_at TIMESTAMPTZ NOT NULL DEFAULT now());
+CREATE TABLE stock_reservations (id UUID PRIMARY KEY, order_id UUID NOT NULL, item_id UUID NOT NULL REFERENCES stock(item_id), quantity INTEGER NOT NULL CHECK (quantity > 0), status TEXT NOT NULL, expires_at TIMESTAMPTZ NOT NULL, UNIQUE(order_id,item_id));
+CREATE TABLE stock_movements (id UUID PRIMARY KEY, item_id UUID NOT NULL REFERENCES stock(item_id), change_qty INTEGER NOT NULL, reason TEXT NOT NULL, reference_id UUID, actor_id UUID, created_at TIMESTAMPTZ NOT NULL DEFAULT now());

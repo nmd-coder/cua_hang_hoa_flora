@@ -1,0 +1,3 @@
+CREATE TABLE users (id UUID PRIMARY KEY, email TEXT NOT NULL UNIQUE, status TEXT NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT now());
+CREATE TABLE credentials (user_id UUID PRIMARY KEY REFERENCES users(id), password_hash TEXT NOT NULL);
+CREATE TABLE user_roles (user_id UUID NOT NULL REFERENCES users(id), role TEXT NOT NULL CHECK (role IN ('CUSTOMER','STAFF','ADMIN')), PRIMARY KEY(user_id, role));

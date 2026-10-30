@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: payment-service
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/flora}
+    username: ${DB_USER:flora}
+    password: ${DB_PASSWORD}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    schemas: payment
+    default-schema: payment
+    create-schemas: true
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

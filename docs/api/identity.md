@@ -1,0 +1,5 @@
+# Identity nội bộ, đang phát triển
+
+POST /api/auth/register nhận email/password, tạo CUSTOMER và trả 201; POST /api/auth/login trả accessToken và expiresAt; GET /api/auth/me và POST /api/auth/logout nhận Authorization: Bearer <token>. Token ngẫu nhiên 256 bit; database chỉ giữ SHA-256, phiên hết hạn sau 12 giờ hoặc khi thu hồi. Mật khẩu dùng BCrypt; email viết thường, mật khẩu tối thiểu 10 ký tự và tối đa 72 byte UTF-8.
+
+Đây chưa là giải pháp hoàn chỉnh cho trình duyệt: gateway đã có tuyến Identity nhưng chưa có cookie HttpOnly, kiểm soát CSRF cho trình duyệt, giới hạn đăng nhập, đặt lại mật khẩu, audit hoặc kiểm tra quyền ở các service. Kiểm thử đăng ký, đăng nhập và thu hồi phiên qua lớp dịch vụ đã chạy với PostgreSQL; chưa kiểm thử tích hợp HTTP qua gateway. Không sử dụng cho production hoặc đưa token vào localStorage/log. Các service khác không được tin vai trò do client tự gửi.

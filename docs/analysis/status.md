@@ -1,0 +1,2 @@
+# Trạng thái và chính sách
+Cơ sở tham khảo là FLORA-DATA.md và FLORA-NGHIEP-VU.md. Quy tắc về vùng giao, thời hạn giữ tồn, voucher, hủy/hoàn và lưu PII chưa được chốt. Trạng thái đơn, thanh toán, hoàn và giao cần tách biệt; không có giao dịch ACID xuyên dịch vụ. Catalog hiện có dữ liệu mẫu nhân tạo. Identity đã có tuyến gateway và kiểm thử PostgreSQL ở lớp dịch vụ. Inventory có logic giữ/nhả tồn và kiểm thử cạnh tranh PostgreSQL, chưa có API. Order, Payment và Customer vẫn là khung và mặc định từ chối API.

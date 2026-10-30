@@ -1,0 +1,5 @@
+CREATE TABLE customer_profiles (user_id UUID PRIMARY KEY, full_name TEXT NOT NULL, avatar_url TEXT);
+CREATE TABLE addresses (id UUID PRIMARY KEY, user_id UUID NOT NULL, recipient_name TEXT NOT NULL, recipient_phone TEXT NOT NULL, province TEXT NOT NULL, district TEXT NOT NULL, ward TEXT NOT NULL, address_detail TEXT NOT NULL, is_default BOOLEAN NOT NULL DEFAULT false);
+CREATE UNIQUE INDEX one_default_address_per_user ON addresses(user_id) WHERE is_default;
+CREATE TABLE wishlists (user_id UUID NOT NULL, product_id UUID NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), PRIMARY KEY(user_id,product_id));
+CREATE TABLE reviews (id UUID PRIMARY KEY, order_item_id UUID NOT NULL UNIQUE, user_id UUID NOT NULL, product_id UUID NOT NULL, rating INTEGER NOT NULL CHECK(rating BETWEEN 1 AND 5), comment TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now());

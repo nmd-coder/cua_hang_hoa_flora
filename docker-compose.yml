@@ -1,0 +1,125 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: flora
+      POSTGRES_USER: flora
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - flora_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flora -d flora"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  identity:
+    build: ./backend/identity-service
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/flora
+      DB_USER: flora
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  catalog:
+    build: ./backend/catalog-service
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/flora
+      DB_USER: flora
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  inventory:
+    build: ./backend/inventory-service
+    environment:
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:?Set INTERNAL_API_KEY}
+      DB_URL: jdbc:postgresql://postgres:5432/flora
+      DB_USER: flora
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  order:
+    build: ./backend/order-service
+    environment:
+      IDENTITY_URL: http://identity:8080
+      CATALOG_URL: http://catalog:8080
+      MOCK_SHIPPING_FEE: 30000
+      INVENTORY_URL: http://inventory:8080
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:?Set INTERNAL_API_KEY}
+      DB_URL: jdbc:postgresql://postgres:5432/flora
+      DB_USER: flora
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      identity:
+        condition: service_started
+      catalog:
+        condition: service_started
+      inventory:
+        condition: service_started
+
+  payment:
+    build: ./backend/payment-service
+    environment:
+      ORDER_URL: http://order:8080
+      DB_URL: jdbc:postgresql://postgres:5432/flora
+      DB_USER: flora
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      order:
+        condition: service_started
+
+  customer:
+    build: ./backend/customer-service
+    environment:
+      IDENTITY_URL: http://identity:8080
+      DB_URL: jdbc:postgresql://postgres:5432/flora
+      DB_USER: flora
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      identity:
+        condition: service_started
+
+  api-gateway:
+    build: ./backend/api-gateway
+    environment:
+      IDENTITY_URL: http://identity:8080
+      CATALOG_URL: http://catalog:8080
+      ORDER_URL: http://order:8080
+      INVENTORY_URL: http://inventory:8080
+      PAYMENT_URL: http://payment:8080
+      CUSTOMER_URL: http://customer:8080
+    depends_on:
+      - identity
+      - catalog
+      - inventory
+      - order
+      - payment
+      - customer
+    ports:
+      - "127.0.0.1:8080:8080"
+
+  frontend:
+    build: ./frontend
+    environment:
+      GATEWAY_URL: http://api-gateway:8080
+    depends_on:
+      - api-gateway
+    ports:
+      - "127.0.0.1:3000:3000"
+
+volumes:
+  flora_pg:
