@@ -33,7 +33,7 @@ export async function register(form: FormData) {
   const result = await authRequest("/api/auth/register", { email, password, phone });
   if (!result?.ok) {
     console.error("REGISTER ERROR:", result?.status, email);
-    redirect("/tai-khoan?error=" + error(result?.status === 409 ? "Email đã được sử dụng." : "Không thể đăng ký. Kiểm tra email và mật khẩu từ 10 ký tự."));
+    redirect("/dang-ky?error=" + error(result?.status === 409 ? "Email đã được sử dụng." : "Không thể đăng ký. Kiểm tra email và mật khẩu từ 10 ký tự."));
   }
 
   // If full name provided, auto-login and update profile
@@ -61,7 +61,7 @@ export async function register(form: FormData) {
     }
   }
 
-  redirect("/tai-khoan?notice=" + notice("Đăng ký thành công. Hãy đăng nhập."));
+  redirect("/dang-nhap?notice=" + notice("Đăng ký thành công. Hãy đăng nhập."));
 }
 
 export async function login(form: FormData) {
@@ -69,11 +69,11 @@ export async function login(form: FormData) {
   const password = String(form.get("password") || "");
   const result = await authRequest("/api/auth/login", { email, password });
   if (!result?.ok) {
-    redirect("/tai-khoan?error=" + error("Đăng nhập không thành công. Vui lòng kiểm tra email và mật khẩu."));
+    redirect("/dang-nhap?error=" + error("Đăng nhập không thành công. Vui lòng kiểm tra email và mật khẩu."));
   }
   const data = await result.json() as { accessToken: string; expiresAt: string };
   if (!/^[A-Za-z0-9_-]{43}$/.test(data.accessToken)) {
-    redirect("/tai-khoan?error=" + error("Không thể tạo phiên đăng nhập."));
+    redirect("/dang-nhap?error=" + error("Không thể tạo phiên đăng nhập."));
   }
   (await cookies()).set("flora_session", data.accessToken, {
     httpOnly: true,
@@ -121,7 +121,7 @@ export async function logout() {
     }
   }
   jar.delete("flora_session");
-  redirect("/tai-khoan");
+  redirect("/dang-nhap");
 }
 
 export async function addToCart(form: FormData) {

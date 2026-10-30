@@ -10,7 +10,7 @@ test("register, log in and place one COD order from the browser",async({page,con
  page.on("console",m=>{if(m.type()==="error")console.log("Browser console:",m.text());});
  page.on("response",r=>{if(r.request().method()==="POST")console.log("Action HTTP:",r.status(),new URL(r.url()).pathname);});
  try{
-  await page.goto("/tai-khoan");
+  await page.goto("/dang-ky");
   const registration=page.locator("form").filter({has:page.getByRole("heading",{name:"Đăng ký",exact:true})});
   await registration.getByLabel("Email",{exact:true}).fill(email);
   await registration.getByLabel("Mật khẩu",{exact:true}).fill(password);

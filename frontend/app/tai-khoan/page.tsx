@@ -1,5 +1,6 @@
-import { login, register, logout, updateProfile, addAddress, deleteAddress, setDefaultAddress } from "../actions";
+import { logout, updateProfile, addAddress, deleteAddress, setDefaultAddress } from "../actions";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { price } from "../../lib/catalog";
 
 import { getGatewayUrl } from "../../lib/config";
@@ -61,85 +62,23 @@ export default async function AccountPage({
     } catch {}
   }
 
+  if (!user) {
+    const q = new URLSearchParams();
+    if (msg.error) q.set("error", msg.error);
+    if (msg.notice) q.set("notice", msg.notice);
+    const qs = q.toString() ? `?${q.toString()}` : "";
+    redirect(`/dang-nhap${qs}`);
+  }
+
   return (
     <section>
       <p className="eyebrow">TÀI KHOẢN KHÁCH HÀNG</p>
-      <h1>{user ? `Xin chào, ${profile?.full_name || user.email.split("@")[0]}` : "Tài khoản FLORA"}</h1>
+      <h1>Xin chào, {profile?.full_name || user.email.split("@")[0]}</h1>
 
       {msg.error && <p role="alert">{msg.error}</p>}
       {msg.notice && <p role="status">{msg.notice}</p>}
 
-      {!user ? (
-        <>
-          <div className="account-grid">
-            {/* Login form */}
-            <form action={login} className="panel" id="dang-nhap">
-              <h2>Đăng nhập</h2>
-              <label>
-                Email
-                <input type="email" name="email" required maxLength={254} />
-              </label>
-              <label>
-                Mật khẩu
-                <input type="password" name="password" required minLength={10} autoComplete="current-password" />
-              </label>
-              <button type="submit" style={{ width: "100%", marginTop: "0.8rem" }}>
-                Đăng nhập
-              </button>
-            </form>
-
-            {/* Registration form */}
-            <form action={register} className="panel" id="dang-ky">
-              <h2>Đăng ký</h2>
-              <label>
-                Họ và tên
-                <input name="fullName" placeholder="Ví dụ: Nguyễn Văn An" />
-              </label>
-              <label>
-                Số điện thoại
-                <input name="phone" type="tel" placeholder="0901234567" />
-              </label>
-              <label>
-                Email
-                <input type="email" name="email" required maxLength={254} />
-              </label>
-              <label>
-                Mật khẩu
-                <input type="password" name="password" required minLength={10} autoComplete="new-password" />
-              </label>
-              <button type="submit" style={{ width: "100%", marginTop: "0.8rem" }}>
-                Tạo tài khoản
-              </button>
-            </form>
-          </div>
-
-          {/* Quick Demo Logins Helper */}
-          <div className="panel" style={{ background: "#F4F0E8", border: "1px dashed #C2B7A8", marginTop: "1rem" }}>
-            <h3 style={{ fontSize: "1.1rem", marginBottom: "0.6rem" }}>Tài khoản thử nghiệm sẵn có</h3>
-            <p style={{ fontSize: "0.88rem", color: "var(--text-muted)", marginBottom: "1rem" }}>
-              Hệ thống đã chuẩn bị sẵn các tài khoản mẫu với mật khẩu mặc định <code>Password123@</code>:
-            </p>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem" }}>
-              <div style={{ background: "#FFF", padding: "0.8rem", borderRadius: "var(--radius-sm)" }}>
-                <strong>Khách hàng:</strong><br />
-                <code>customer@flora.vn</code><br />
-                <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Vai trò: CUSTOMER</span>
-              </div>
-              <div style={{ background: "#FFF", padding: "0.8rem", borderRadius: "var(--radius-sm)" }}>
-                <strong>Nhân viên:</strong><br />
-                <code>staff@flora.vn</code><br />
-                <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Vai trò: STAFF</span>
-              </div>
-              <div style={{ background: "#FFF", padding: "0.8rem", borderRadius: "var(--radius-sm)" }}>
-                <strong>Quản trị viên:</strong><br />
-                <code>admin@flora.vn</code><br />
-                <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Vai trò: ADMIN</span>
-              </div>
-            </div>
-          </div>
-        </>
-      ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem", alignItems: "flex-start" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem", alignItems: "flex-start" }}>
           <div>
             {/* User Profile */}
             <div className="panel">
@@ -262,7 +201,6 @@ export default async function AccountPage({
             </div>
           </div>
         </div>
-      )}
     </section>
   );
 }

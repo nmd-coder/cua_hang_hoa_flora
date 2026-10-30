@@ -158,10 +158,10 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
               </a>
             ) : (
               <div className="auth-buttons">
-                <a href="/tai-khoan#dang-nhap" className="button button-sm auth-btn-login">
+                <a href="/dang-nhap" className="button button-sm auth-btn-login">
                   Đăng nhập
                 </a>
-                <a href="/tai-khoan#dang-ky" className="button button-sm auth-btn-register">
+                <a href="/dang-ky" className="button button-sm auth-btn-register">
                   Đăng ký
                 </a>
               </div>
