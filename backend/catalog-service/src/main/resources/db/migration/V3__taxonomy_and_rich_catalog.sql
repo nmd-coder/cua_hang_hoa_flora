@@ -107,8 +107,8 @@ INSERT INTO product_images(id, product_id, url, alt_text, sort_order, is_primary
 ('50000000-0000-0000-0000-000000000007', '10000000-0000-0000-0000-000000000007', 'https://images.unsplash.com/photo-1508610048659-a06b669e3321?auto=format&fit=crop&w=800&q=80', 'Giỏ hoa Nắng ban mai tone vàng tươi tắn', 1, true),
 ('50000000-0000-0000-0000-000000000008', '10000000-0000-0000-0000-000000000008', 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80', 'Hộp hoa trái tim hoa hồng đỏ sang trọng', 1, true),
 ('50000000-0000-0000-0000-000000000009', '10000000-0000-0000-0000-000000000009', 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=800&q=80', 'Kệ hoa khai trương rực rỡ hồng phát', 1, true),
-('50000000-0000-0000-0000-000000000010', '10000000-0000-0000-0000-000000000010', '/images/products/chau-lan-bach-ngoc.jpg', 'Chậu lan hồ điệp trắng quý phái', 1, true),
-('50000000-0000-0000-0000-000000000011', '10000000-0000-0000-0000-000000000011', '/images/products/may-trang-bong-benh.jpg', 'Bó hoa baby trắng tinh khôi mây bồng bềnh', 1, true),
+('50000000-0000-0000-0000-000000000010', '10000000-0000-0000-0000-000000000010', 'https://images.unsplash.com/photo-1566938064504-a376569cdc18?auto=format&fit=crop&w=800&q=80', 'Chậu lan hồ điệp trắng quý phái', 1, true),
+('50000000-0000-0000-0000-000000000011', '10000000-0000-0000-0000-000000000011', 'https://images.unsplash.com/photo-1508615070457-7baeba4003ab?auto=format&fit=crop&w=800&q=80', 'Bó hoa baby trắng tinh khôi mây bồng bềnh', 1, true),
 ('50000000-0000-0000-0000-000000000012', '10000000-0000-0000-0000-000000000012', 'https://images.unsplash.com/photo-1563241527-3004b7be0ffd?auto=format&fit=crop&w=800&q=80', 'Bó hoa tím lãng mạn Hương thầm violet', 1, true)
 ON CONFLICT (id) DO NOTHING;
 
