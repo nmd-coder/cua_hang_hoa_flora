@@ -1,261 +1,452 @@
-# FLORA — Cửa Hàng Hoa Tươi Trực Tuyến (Microservices Architecture)
+# FLORA — Nền Tảng Thương Mại Điện Tử Hoa Tươi Nghệ Thuật & Quà Tặng Cao Cấp
 
-Hệ thống bán hoa tươi trực tuyến **FLORA** được thiết kế và xây dựng theo kiến trúc **Microservices** hiện đại, kết hợp giữa backend **Spring Boot** (Java 21) mạnh mẽ, an toàn và frontend **Next.js** (App Router, React 19, TypeScript) tinh tế, tối ưu trải nghiệm khách hàng lẫn nhân viên và quản trị viên.
+> **Hệ thống thương mại điện tử chuyên biệt ngành hoa tươi được thiết kế theo kiến trúc Microservices hiện đại, kết hợp giữa sức mạnh bảo mật của Java 21 / Spring Boot 3 và trải nghiệm người dùng tinh tế, mượt mà của Next.js 15 (App Router, React 19, TypeScript).**
 
 ---
 
-## 1. Kiến trúc hệ thống & Danh mục Dịch vụ
+## 📑 Mục Lục
+1. [Giới thiệu tổng quan sản phẩm](#1-giới-thiệu-tổng-quan-sản-phẩm)
+2. [Kiến trúc hệ thống & Sơ đồ luồng dữ liệu](#2-kiến-trúc-hệ-thống--sơ-đồ-luồng-dữ-liệu)
+3. [Công nghệ sử dụng từ Frontend đến Backend](#3-công-nghệ-sử-dụng-từ-frontend-đến-backend)
+4. [Bóc tách chi tiết các Microservices & Cơ sở dữ liệu](#4-bóc-tách-chi-tiết-các-microservices--cơ-sở-dữ-liệu)
+5. [Quy trình nghiệp vụ cốt lõi (Business Workflows)](#5-quy-trình-nghiệp-vụ-cốt-lõi-business-workflows)
+   - 5.1. Vòng đời đơn hàng (Order State Machine)
+   - 5.2. Quản lý kho hoa nguyên tử (Atomic Stock Reservation)
+   - 5.3. Định giá đa tầng: Giá niêm yết, Giá ưu đãi & Voucher
+   - 5.4. Bộ lọc tìm kiếm thông minh 110+ loài hoa
+   - 5.5. Đánh giá sản phẩm & Danh sách yêu thích (Wishlist)
+6. [Cấu trúc thư mục dự án (Directory Structure)](#6-cấu-trúc-thư-mục-dự-án-directory-structure)
+7. [Hướng dẫn cài đặt, chạy và dừng hệ thống cho người mới](#7-hướng-dẫn-cài-đặt-chạy-và-dừng-hệ-thống-cho-người-mới)
+   - 7.1. Yêu cầu môi trường tiên quyết (Prerequisites)
+   - 7.2. Khởi chạy 1 lệnh duy nhất với Docker Compose (Khuyên dùng)
+   - 7.3. Cách kiểm tra trạng thái hoạt động và xem log
+   - 7.4. Hướng dẫn dừng và dọn dẹp hệ thống (Stop & Down)
+   - 7.5. Khởi chạy thủ công cho lập trình viên (Local Development)
+8. [Tài khoản thử nghiệm & Phân quyền người dùng](#8-tài-khoản-thử-nghiệm--phân-quyền-người-dùng)
+9. [Bảng ánh xạ Cổng dịch vụ, Swagger UI & API Docs](#9-bảng-ánh-xạ-cổng-dịch-vụ-swagger-ui--api-docs)
+10. [Bộ kịch bản kiểm thử tự động (Automated Testing)](#10-bộ-kịch-bản-kiểm-thử-tự-động-automated-testing)
+11. [Quy định nghiệp vụ cần lưu ý trước khi lên Production](#11-quy-định-nghiệp-vụ-cần-lưu-ý-trước-khi-lên-production)
 
-Hệ thống tuân thủ nguyên tắc độc lập cơ sở dữ liệu: **Không dùng chung bảng hay Foreign Key xuyên service (No cross-service DB constraints)**. Giao tiếp giữa các service diễn ra qua REST API chuẩn hóa với mã xác thực nội bộ `X-Internal-Key`.
+---
 
+## 1. Giới thiệu tổng quan sản phẩm
+
+**FLORA** là nền tảng thương mại điện tử phục vụ khách hàng có nhu cầu gửi trao hoa tươi nghệ thuật trong các dịp đặc biệt (Sinh nhật, Tình yêu & Kỷ niệm, Khai trương, Cảm ơn, Hoa cưới, Chia buồn).
+
+Khác với các mặt hàng tiêu dùng thông thường, ngành hoa tươi có các đặc thù nghiệp vụ chuyên biệt:
+- **Tính thời gian thực và mau hỏng (Perishable Goods)**: Sản phẩm chỉ cắm sau khi khách đặt, yêu cầu cam kết **Giao hỏa tốc trong 2 giờ** và giữ tồn kho nguyên tử (`Atomic Stock Hold`) để tránh bán vượt số lượng hoa thực tế có trong ngày.
+- **Tính cá nhân hóa cao**: Mỗi bó hoa thường đi kèm thông điệp viết thiệp tay, lời nhắn chúc mừng, và khung giờ giao hẹn trước (sáng, trưa, chiều, tối).
+- **Phân loại hoa đa chiều**: Người mua tìm hoa theo dịp, theo ý nghĩa từng loài hoa (110+ giống hoa: David Austin, Peony, Tulip Hà Lan, Sen bách diệp...), theo bảng màu phong thủy hoặc theo ngân sách cá nhân.
+- **Vận hành 3 bên khép kín**: Khách hàng đặt mua ➔ Nhân viên tiệm hoa tiếp nhận và thợ cắm hoa hoàn thiện ➔ Quản trị viên theo dõi doanh thu KPI, điều phối nhập xuất kho và phát hành voucher khuyến mãi.
+
+---
+
+## 2. Kiến trúc hệ thống & Sơ đồ luồng dữ liệu
+
+Hệ thống được xây dựng hoàn toàn theo mô hình **Microservices** hướng module độc lập. Mỗi dịch vụ chịu trách nhiệm cho một miền nghiệp vụ riêng biệt (**Domain-Driven Design**), sở hữu schema cơ sở dữ liệu độc lập và không tồn tại Foreign Key xuyên dịch vụ (No Cross-Service Database Constraints).
+
+### 2.1. Sơ đồ kiến trúc tổng thể (System Topology)
+
+```mermaid
+flowchart TD
+    User["👤 Khách hàng / Nhân viên / Admin"] -->|Truy cập trình duyệt / Mobile| FE["🖥️ Next.js 15 App Router (Port 3000)"]
+    FE -->|REST API + Bearer Token| GW["🛡️ API Gateway - Spring Cloud Gateway (Port 8080)"]
+    
+    subgraph Microservices Backend [Cụm Microservices Backend Java 21 - Spring Boot 3.4.5]
+        GW -->|/api/auth, /api/identity| ID["🔐 Identity Service (Port 8081)"]
+        GW -->|/api/products, /api/categories| CAT["💐 Catalog Service (Port 8082)"]
+        GW -->|/api/inventory, /api/admin/inventory| INV["📦 Inventory Service (Port 8083)"]
+        GW -->|/api/orders, /api/cart, /api/quotes| ORD["🛒 Order Service (Port 8084)"]
+        GW -->|/api/payments| PAY["💳 Payment Service (Port 8085)"]
+        GW -->|/api/customer, /api/reviews| CUS["👥 Customer Service (Port 8086)"]
+    end
+
+    subgraph Database Cluster [PostgreSQL 16 Multi-Schema Database: flora (Port 5432)]
+        ID -->|Schema| DB_ID[("identity")]
+        CAT -->|Schema| DB_CAT[("catalog")]
+        INV -->|Schema| DB_INV[("inventory")]
+        ORD -->|Schema| DB_ORD[("order")]
+        PAY -->|Schema| DB_PAY[("payment")]
+        CUS -->|Schema| DB_CUS[("customer")]
+    end
 ```
-               [ Khách hàng / Nhân viên / Quản trị viên ]
-                                   │
-                                   ▼
-                   [ Frontend Next.js - Port 3000 ]
-                                   │
-                                   ▼
-                  [ API Gateway (Spring Boot) - Port 8080 ]
-                                   │
-     ┌─────────────┬───────────────┼───────────────┬─────────────┬─────────────┐
-     ▼             ▼               ▼               ▼             ▼             ▼
-[Identity]     [Catalog]      [Inventory]       [Order]      [Payment]    [Customer]
-:8081          :8082          :8083             :8084        :8085        :8086
-Schema:        Schema:        Schema:           Schema:      Schema:      Schema:
-identity       catalog        inventory         order        payment      customer
-     │             │               │               │             │             │
-     └─────────────┴───────────────┴───────────────┴─────────────┴─────────────┘
-                                   │
-                                   ▼
-             [ PostgreSQL Database: flora - Port 5432 ]
-```
 
-### 1.1. Bảng phân chia trách nhiệm Microservices
-
-| Service | Port | Database Schema | Nhiệm vụ chính & Nghiệp vụ cốt lõi |
-| :--- | :---: | :---: | :--- |
-| **api-gateway** | `8080` | *(Không lưu DB)* | Cổng điều hướng tập trung (Reverse Proxy), định tuyến request, xử lý CORS, phân phối tải tới các microservices phía sau. |
-| **identity-service** | `8081` | `identity` | Đăng ký, đăng nhập, cấp và thu hồi phiên xác thực (`Bearer session tokens`), phân quyền theo vai trò (`CUSTOMER`, `STAFF`, `ADMIN`), mã hóa mật khẩu với BCrypt 12 rounds. |
-| **catalog-service** | `8082` | `catalog` | Danh mục hoa tươi, phân loại đa chiều (Dịp tặng, Loại hoa, Màu sắc, Khoảng giá), kích thước, thư viện hình ảnh, CRUD quản trị sản phẩm. |
-| **inventory-service** | `8083` | `inventory` | Quản lý tồn kho hoa tươi, giữ hàng nguyên tử (`atomic stock reservation`), nhả hàng idempotent khi hủy đơn, lưu vết biến động kho (`stock_movements`) và điều chỉnh tồn kho. |
-| **order-service** | `8084` | `order` | Giỏ hàng, báo giá giao hoa (`quotes`), kiểm tra voucher giảm giá, tạo đơn COD/trực tuyến với Idempotency-Key chống trùng lặp, quản lý snapshot giá/sản phẩm tại thời điểm mua, vòng đời trạng thái đơn hàng (`PENDING` -> `PROCESSING` -> `SHIPPED` -> `COMPLETED` -> `RECEIVED` / `CANCELLED`), thống kê KPI doanh thu. |
-| **payment-service** | `8085` | `payment` | Quản lý giao dịch thanh toán COD, adapter tích hợp MoMo Sandbox (giả lập thanh toán trực tuyến, QR, webhook callback, xác minh chữ ký và hoàn tiền refund). |
-| **customer-service** | `8086` | `customer` | Hồ sơ cá nhân khách hàng, sổ địa chỉ nhận hoa giao hàng (hỗ trợ địa chỉ mặc định), danh sách hoa yêu thích (`wishlist`), đánh giá sản phẩm có kèm điều kiện mua hàng. |
+### 2.2. Giao tiếp an toàn giữa các dịch vụ (Inter-Service Communication)
+- **Từ ngoài vào (North-South Traffic)**: Client gửi request tới **API Gateway** (`http://localhost:8080`). Gateway đảm nhiệm CORS, xác thực phân quyền qua JWT Bearer Token, sau đó chuyển tiếp (reverse-proxy) tới các service nội bộ.
+- **Nội bộ giữa các service (East-West Traffic)**: Khi `order-service` cần kiểm tra tồn kho tại `inventory-service` hoặc lấy thông tin sản phẩm từ `catalog-service`, cuộc gọi được bảo vệ bằng header bí mật `X-Internal-Key` ngăn chặn hoàn toàn việc gọi trái phép từ bên ngoài mạng nội bộ.
 
 ---
 
-## 2. Công nghệ sử dụng & Phiên bản
+## 3. Công nghệ sử dụng từ Frontend đến Backend
 
-- **Backend**:
-  - Java 21 LTS (tương thích Java 26)
-  - Spring Boot `3.4.5`
-  - Spring Security & Spring Web (RESTful APIs)
-  - Spring Data JPA & Hibernate
-  - Flyway Migration (quản lý phiên bản cấu trúc database riêng cho từng schema)
-  - PostgreSQL JDBC Driver
-  - Apache Maven `3.9+`
-  - Xử lý tiền tệ: Hoàn toàn sử dụng `NUMERIC(15,2)` trong PostgreSQL và `java.math.BigDecimal` trong Java (không dùng float/double).
-- **Frontend**:
-  - Next.js `15.5.28` (App Router)
-  - React `19.0.0`
-  - TypeScript `5.8.3`
-  - Thiết kế Responsive (Mobile, Tablet, Desktop)
-  - Bảng màu nhận diện FLORA: Kem trang nhã (`#FAF8F4`), Xanh lá rừng (`#315B45`), Hồng phấn hoa (`#D6A6A0`), Đen tro sang trọng (`#25332B`).
-- **Database & Hạ tầng**:
-  - PostgreSQL 16
-  - Docker & Docker Compose v2
-
----
-
-## 3. Tài khoản thử nghiệm mặc định (Seed Accounts)
-
-Hệ thống đã chuẩn bị sẵn tài khoản mẫu cho đầy đủ các vai trò nghiệp vụ (Mật khẩu đều là `Password123@`):
-
-| Vai trò (Role) | Email đăng nhập | Mật khẩu | Quyền hạn & Chức năng kiểm thử |
+| Tầng hệ thống | Công nghệ | Phiên bản | Mô tả vai trò kỹ thuật |
 | :--- | :--- | :--- | :--- |
-| **CUSTOMER** | `customer@flora.vn` | `Password123@` | Xem danh mục, lọc hoa, đặt hàng COD, áp mã voucher, quản lý sổ địa chỉ, wishlist, hủy đơn `PENDING`, xác nhận đã nhận hoa `RECEIVED`, gửi đánh giá sản phẩm. |
-| **STAFF** | `staff@flora.vn` | `Password123@` | Truy cập trang Nhân viên (`/nhan-vien`), tiếp nhận đơn hàng, duyệt chuyển trạng thái `PENDING` ➔ `PROCESSING` ➔ `SHIPPED` ➔ `COMPLETED`. |
-| **ADMIN** | `admin@flora.vn` | `Password123@` | Toàn quyền Bảng điều khiển Quản trị (`/admin`): xem KPI doanh thu & đơn hàng, thêm/sửa sản phẩm (`/admin/san-pham`), điều chỉnh tồn kho (`/admin/ton-kho`), tạo và quản lý mã Voucher (`/admin/vouchers`), xử lý hủy đơn và hoàn tiền (`/admin/don-hang`). |
+| **Frontend** | **Next.js (App Router)** | `15.5.28` | Server-Side Rendering (SSR) & Server Actions cho hiệu năng cao và SEO tối ưu. |
+| | **React** | `19.0.0` | Thư viện UI hiện đại nhất, hỗ trợ async components và transitions. |
+| | **TypeScript** | `5.8.3` | Type-safety chặt chẽ cho toàn bộ models, API payloads và props. |
+| | **Styling & Fonts** | CSS Modules / Vanilla CSS | Typography chuẩn sans-serif hiện đại: `Plus Jakarta Sans` & `Be Vietnam Pro`. |
+| **API Gateway** | **Spring Cloud Gateway** | `3.4.5` | Điều hướng tập trung, Reverse Proxy, CORS pre-flight handler. |
+| **Backend Services**| **Java LTS** | `21` | Ngôn ngữ hiện đại với Virtual Threads, Records, Pattern Matching. |
+| | **Spring Boot** | `3.4.5` | Khung ứng dụng backend microservices tiêu chuẩn doanh nghiệp. |
+| | **Spring Security** | `6.4.x` | Phân quyền vai trò `CUSTOMER`, `STAFF`, `ADMIN`, giải mã Token. |
+| | **Spring Data JPA & JDBC**| `3.4.5` | Tầng truy xuất dữ liệu tối ưu, sử dụng JDBC Template cho các câu query hiệu năng cao. |
+| | **Xử lý tiền tệ** | `BigDecimal` | Tuyệt đối không dùng `float`/`double`; lưu `NUMERIC(19,2)` trong SQL. |
+| **Database** | **PostgreSQL** | `16-alpine` | RDBMS mạnh mẽ, phân tách 6 logical schemas riêng biệt cho từng service. |
+| | **Flyway** | `10.x` | Tự động quản lý migration cấu trúc bảng (`V1` -> `V6`) độc lập mỗi service. |
+| **Đóng gói & Chạy**| **Docker & Docker Compose**| `v2` | Multi-stage build giúp image nhẹ, khởi động cụm 9 containers bằng 1 câu lệnh. |
 
 ---
 
-## 4. Danh sách Swagger UI & API Endpoints
+## 4. Bóc tách chi tiết các Microservices & Cơ sở dữ liệu
 
-Mỗi service cung cấp tài liệu OpenAPI / Swagger UI đầy đủ và độc lập:
+### 4.1. `api-gateway` (Port `8080`)
+- **Nhiệm vụ**: Cổng tiếp nhận toàn bộ request từ người dùng và ứng dụng web.
+- **Định tuyến (Routing)**:
+  - `/api/auth/**` & `/api/identity/**` ➔ `identity-service:8081`
+  - `/api/products/**`, `/api/categories/**`, `/api/occasions/**` ➔ `catalog-service:8082`
+  - `/api/inventory/**` ➔ `inventory-service:8083`
+  - `/api/orders/**`, `/api/cart/**`, `/api/quotes/**` ➔ `order-service:8084`
+  - `/api/payments/**` ➔ `payment-service:8085`
+  - `/api/customer/**`, `/api/reviews/**` ➔ `customer-service:8086`
 
-| Dịch vụ | Địa chỉ Swagger UI | Endpoint API Docs |
-| :--- | :--- | :--- |
-| **API Gateway** | `http://localhost:8080/swagger-ui.html` | `http://localhost:8080/v3/api-docs` |
-| **Identity Service** | `http://localhost:8081/swagger-ui.html` | `http://localhost:8081/v3/api-docs` |
-| **Catalog Service** | `http://localhost:8082/swagger-ui.html` | `http://localhost:8082/v3/api-docs` |
-| **Inventory Service** | `http://localhost:8083/swagger-ui.html` | `http://localhost:8083/v3/api-docs` |
-| **Order Service** | `http://localhost:8084/swagger-ui.html` | `http://localhost:8084/v3/api-docs` |
-| **Payment Service** | `http://localhost:8085/swagger-ui.html` | `http://localhost:8085/v3/api-docs` |
-| **Customer Service** | `http://localhost:8086/swagger-ui.html` | `http://localhost:8086/v3/api-docs` |
+### 4.2. `identity-service` (Port `8081` — Schema `identity`)
+- **Nhiệm vụ**: Quản lý định danh người dùng, phiên đăng nhập và phân quyền truy cập.
+- **Bảo mật**: Mật khẩu được băm bằng thuật toán **BCrypt (12 rounds)**.
+- **Cơ chế Token**: Cấp phát mã `Session Bearer Token` định dạng UUID v4 có thời hạn lưu trong bảng `identity.user_sessions`. Khi đăng xuất, token bị thu hồi ngay lập tức.
+- **Vai trò người dùng**:
+  - `CUSTOMER`: Khách mua hàng, xem đơn, đánh giá sản phẩm.
+  - `STAFF`: Nhân viên xử lý cắm hoa và bàn giao vận chuyển.
+  - `ADMIN`: Quản trị viên toàn quyền hệ thống.
+
+### 4.3. `catalog-service` (Port `8082` — Schema `catalog`)
+- **Nhiệm vụ**: Quản lý thông tin tác phẩm hoa tươi, quy cách bó, hình ảnh minh họa và phân loại đa chiều.
+- **Cấu trúc dữ liệu**:
+  - `products`: Mã SKU, tên sản phẩm, slug thân thiện SEO, giá bán thực tế (`price`), giá niêm yết/gốc (`original_price`), quy cách kích thước (dài, rộng, cao, khối lượng).
+  - `categories`: Danh mục kiểu dáng thiết kế (Hoa bó, Giỏ hoa tươi, Kệ khai trương, Hộp hoa nghệ thuật, Lan hồ điệp).
+  - `flower_types`: Hơn **110 giống hoa** tuyển chọn (Hồng Juliet, Mẫu đơn Peony, Thược dược, Cát tường, Phi yến...).
+  - `occasions`: Các dịp tặng (Sinh nhật, Tình yêu, Khai trương, Tri ân...).
+  - `colors`: Phân loại tone màu sắc (Đỏ tình yêu, Pastel nhẹ nhàng, Xanh biển thanh mát...).
+
+### 4.4. `inventory-service` (Port `8083` — Schema `inventory`)
+- **Nhiệm vụ**: Quản lý số lượng tồn kho từng sản phẩm hoa tươi theo thời gian thực.
+- **Bộ 3 chỉ số tồn kho**:
+  $$\text{Tồn khả dụng (available)} = \text{Tồn thực tế (on\_hand)} - \text{Tồn đang giữ cho đơn chờ (reserved)}$$
+- **Biến động kho (`stock_movements`)**: Mọi lần nhập hàng, giữ hàng cho đơn mới, giải phóng tồn khi hủy đơn hoặc điều chỉnh hao hụt đều được ghi vết lịch sử kèm lý do cụ thể.
+
+### 4.5. `order-service` (Port `8084` — Schema `order`)
+- **Nhiệm vụ**: Trái tim nghiệp vụ của hệ thống thương mại điện tử FLORA.
+- **Báo giá giỏ hàng (`quotes`)**: Tính toán tổng tiền hàng, kiểm tra tính hợp lệ của mã giảm giá (Voucher), tính phụ phí giao hàng hỏa tốc và đưa ra bảng tổng tiền chính xác.
+- **Chống trùng lặp đơn (`Idempotency-Key`)**: Mỗi giao dịch checkout bắt buộc kèm UUID Idempotency-Key. Nếu khách hàng vô tình bấm 2 lần hoặc mạng chập chờn, hệ thống chỉ tạo duy nhất 1 đơn hàng và trả về cùng kết quả.
+- **Lưu vết giá mua (Product Snapshot)**: Khi đặt hàng, tên hoa, SKU và đơn giá tại thời điểm đó được lưu trực tiếp vào bảng `order.order_items`, đảm bảo việc đổi giá trong tương lai không làm sai lệch hóa đơn quá khứ.
+
+### 4.6. `payment-service` (Port `8085` — Schema `payment`)
+- **Nhiệm vụ**: Quản lý các giao dịch thanh toán và cổng thanh toán.
+- **Phương thức hỗ trợ**:
+  1. `COD` (Thanh toán tiền mặt khi nhận hoa): Mặc định tạo giao dịch ở trạng thái `PENDING_COLLECTION`, nhân viên giao hoa thu tiền và cập nhật `PAID`.
+  2. `MOMO` (Cổng MoMo Sandbox Mock Adapter): Hỗ trợ sinh mã QR thanh toán giả lập, webhook callback cập nhật tức thời khi giao dịch thành công.
+
+### 4.7. `customer-service` (Port `8086` — Schema `customer`)
+- **Nhiệm vụ**: Chăm sóc trải nghiệm cá nhân hóa của khách hàng.
+- **Chức năng chính**:
+  - Hồ sơ khách hàng & Sổ địa chỉ nhận hoa (hỗ trợ chọn địa chỉ mặc định).
+  - Danh sách hoa yêu thích (`wishlist`): Khách hàng bấm thả tim hoa để lưu lại và xem trong trang `/yeu-thich`.
+  - Đánh giá hoa tươi (`reviews`): Đánh giá 1 - 5 sao và viết cảm nhận. Có cơ chế kiểm tra khách hàng **phải từng mua sản phẩm trong đơn đã giao thành công** mới được để lại đánh giá.
 
 ---
 
-## 5. Hướng dẫn cài đặt và khởi chạy
+## 5. Quy trình nghiệp vụ cốt lõi (Business Workflows)
 
-### Cách 1: Khởi chạy bằng Docker Compose (Khuyên dùng)
+### 5.1. Vòng đời đơn hàng (Order State Machine)
 
-1. **Chuẩn bị cấu hình môi trường**:
-   Sao chép file `.env.example` thành `.env` (hoặc sử dụng `.env` đã có sẵn):
+Hệ thống quản lý trạng thái đơn hàng chặt chẽ qua 6 giai đoạn rõ ràng:
+
+```mermaid
+stateDiagram-v2
+    [*] --> PENDING: Khách đặt hàng thành công (Đơn chờ xử lý, Tồn kho được GIỮ)
+    
+    PENDING --> PROCESSING: Nhân viên tiếp nhận đơn (Nghệ nhân bắt đầu cắm hoa)
+    PENDING --> CANCELLED: Khách hàng tự hủy đơn / Admin hủy đơn (Tồn kho được NHẢ)
+    
+    PROCESSING --> SHIPPED: Hoa cắm xong, bàn giao Shipper (Đang giao hỏa tốc)
+    PROCESSING --> CANCELLED: Admin can thiệp hủy (kèm hoàn tiền nếu có)
+    
+    SHIPPED --> COMPLETED: Shipper giao hoa thành công tới tay người nhận
+    
+    COMPLETED --> RECEIVED: Khách hàng bấm xác nhận "Đã nhận được hoa"
+    
+    RECEIVED --> [*]: Cho phép Khách gửi Đánh giá (Review ★★★★★)
+    CANCELLED --> [*]: Kết thúc đơn hủy (Giải phóng tồn kho)
+```
+
+> [!IMPORTANT]
+> **Quy định hủy đơn bảo vệ hoa tươi**:
+> Khách hàng **chỉ được quyền tự hủy đơn trực tuyến khi đơn còn ở trạng thái `PENDING` (Chờ xử lý)**. Khi tiệm hoa đã chuyển sang `PROCESSING` (hoa đã được thợ cắt cành cắm vào xốp nghệ thuật), hệ thống tự động khóa nút hủy của khách để tránh hư hao nguyên vật liệu tươi sống.
+
+### 5.2. Quản lý kho hoa nguyên tử (Atomic Stock Reservation)
+1. Khi khách hàng bấm **Đặt hàng** tại `/thanh-toan`:
+   - `order-service` gọi `inventory-service` bằng endpoint nội bộ:  
+     `POST /api/inventory/reserve`
+   - `inventory-service` kiểm tra: Nếu $\text{available} \ge \text{quantity}$ thì tăng $\text{reserved} \mathrel{+}= \text{quantity}$. Quá trình này được bảo vệ bởi câu lệnh SQL Update nguyên tử (`atomic UPDATE WHERE available >= requested`), loại bỏ triệt để nguy cơ Race Condition khi nhiều người cùng đặt bó hoa cuối cùng.
+2. Nếu đơn hàng bị hủy (`CANCELLED`):
+   - `order-service` tự động phát tín hiệu:  
+     `POST /api/inventory/release`
+   - `inventory-service` giảm $\text{reserved} \mathrel{-}= \text{quantity}$, trả lại số hoa khả dụng cho người khác mua ngay lập tức mà không cần can thiệp thủ công.
+
+### 5.3. Định giá đa tầng: Giá niêm yết, Giá ưu đãi & Voucher
+Để kích thích mua sắm và tạo cảm giác nhận được giá trị xứng đáng, FLORA áp dụng cơ chế 3 mức giá minh bạch:
+1. **Giá gốc / Giá niêm yết (`original_price`)**: Giá thị trường tham chiếu, được hiển thị gạch ngang (`strike-through`) với màu xám thanh lịch.
+2. **Giá bán ưu đãi (`price`)**: Giá thực tế tại FLORA (thường rẻ hơn 15% - 25% so với giá gốc). Trên ảnh hoa có gắn huy hiệu giảm giá nổi bật (ví dụ: `-17%`, `-20%`).
+3. **Mã giảm giá (Voucher Discount)**: Nhập mã khuyến mãi khi thanh toán:
+   - `FLORANEW`: Giảm ngay 50.000 ₫ cho khách hàng mới.
+   - `FLORA10`: Giảm 10% tổng đơn hàng (tối đa 100.000 ₫, đơn từ 300.000 ₫).
+   - `FLORALOVE`: Giảm 80.000 ₫ cho các đơn hoa kỷ niệm & tình yêu từ 500.000 ₫.
+
+### 5.4. Bộ lọc tìm kiếm thông minh 110+ loài hoa
+Tại trang danh mục hoa tươi (`/san-pham`), người dùng có thể kết hợp đồng thời nhiều tiêu chí lọc mà không bị gián đoạn:
+- **Lọc theo Dịp**: Sinh nhật, Khai trương, Tình yêu & Kỷ niệm, Cảm ơn & Tri ân, Hoa chia buồn.
+- **Lọc theo 110+ giống hoa**: Hộp cuộn danh mục có thanh cuộn tinh gọn, hỗ trợ chọn từng giống hoa cụ thể (Baby trắng, Hồng Juliet, Cúc mẫu đơn, Lan hồ điệp...).
+- **Lọc theo Màu sắc**: Trắng tinh khôi, Đỏ rực rỡ, Hồng ngọt ngào, Vàng ấm áp, Xanh pastel...
+- **Lọc theo Khoảng ngân sách**: Dưới 500k, 500k - 1 triệu, 1 triệu - 2 triệu, Trên 2 triệu.
+
+### 5.5. Đánh giá sản phẩm & Danh sách yêu thích (Wishlist)
+- **Yêu thích (Wishlist)**: Khách hàng có thể lưu lại những tác phẩm hoa ưng ý bằng nút Thả tim `♥` tại trang chi tiết, sau đó dễ dàng xem lại toàn bộ danh sách tại `/yeu-thich`.
+- **Đánh giá thực tế**: Đánh giá chỉ được mở cho những khách hàng đã thực sự đặt mua đơn hàng đó (trạng thái `COMPLETED` hoặc `RECEIVED`), đảm bảo 100% đánh giá là người thật việc thật.
+
+---
+
+## 6. Cấu trúc thư mục dự án (Directory Structure)
+
+```
+d:/cua_hang_hoa_flora/
+├── backend/                               # Cụm Microservices Java 21 / Spring Boot 3
+│   ├── api-gateway/                       # Cổng điều hướng tập trung (Port 8080)
+│   ├── identity-service/                  # Đăng ký, đăng nhập, JWT sessions (Port 8081)
+│   ├── catalog-service/                   # Quản lý 20+ tác phẩm hoa, 110 giống hoa (Port 8082)
+│   ├── inventory-service/                 # Quản lý tồn kho hoa tươi & giữ hàng (Port 8083)
+│   ├── order-service/                     # Giỏ hàng, báo giá, tạo đơn, voucher (Port 8084)
+│   ├── payment-service/                   # Quản lý giao dịch COD & MoMo Mock (Port 8085)
+│   └── customer-service/                  # Sổ địa chỉ, Wishlist, Đánh giá sản phẩm (Port 8086)
+│
+├── frontend/                              # Ứng dụng Web Next.js 15 (Port 3000)
+│   ├── app/                               # App Router cấu trúc theo chuẩn Next.js
+│   │   ├── (auth)/                        # Nhóm giao diện xác thực tách biệt
+│   │   │   ├── dang-nhap/page.tsx         # Màn hình Đăng nhập riêng biệt
+│   │   │   └── dang-ky/page.tsx           # Màn hình Đăng ký tài khoản mới riêng biệt
+│   │   ├── san-pham/                      # Trang danh mục & bộ lọc hoa tươi
+│   │   │   └── [id]/page.tsx              # Chi tiết bó hoa, giá gốc & giá ưu đãi, đánh giá
+│   │   ├── gio-hang/page.tsx              # Giỏ hàng, tăng giảm số lượng
+│   │   ├── thanh-toan/                    # Đặt hàng, chọn ngày giờ giao, nhập voucher
+│   │   │   └── [id]/page.tsx              # Trang xác nhận đơn & mã QR MoMo Sandbox
+│   │   ├── don-hang/                      # Quản lý đơn hàng của tôi, hủy đơn, xác nhận
+│   │   │   └── [id]/page.tsx              # Chi tiết đơn hàng, lịch sử chuyển trạng thái
+│   │   ├── yeu-thich/page.tsx             # Danh sách các bó hoa khách đã thả tim
+│   │   ├── danh-gia/[orderItemId]/        # Form gửi cảm nhận và chấm sao cho hoa
+│   │   ├── nhan-vien/page.tsx             # Giao diện dành cho nhân viên xử lý cắm hoa
+│   │   ├── admin/                         # Bảng điều khiển quản trị viên
+│   │   │   ├── page.tsx                   # Báo cáo doanh thu KPI tổng quan
+│   │   │   ├── san-pham/page.tsx          # Thêm mới / cập nhật sản phẩm hoa
+│   │   │   ├── ton-kho/page.tsx           # Điều chỉnh tồn kho thực tế, nhập xuất hao hụt
+│   │   │   ├── vouchers/page.tsx          # Tạo và quản lý mã giảm giá
+│   │   │   └── don-hang/page.tsx          # Can thiệp chuyển trạng thái đơn, xử lý hoàn tiền
+│   │   ├── layout.tsx                     # Header thương hiệu, Thanh tìm kiếm, Footer
+│   │   ├── style.css                      # Toàn bộ CSS phong cách hoa tươi hiện đại
+│   │   └── actions.ts                     # Server Actions xử lý form đăng nhập, giỏ hàng
+│   ├── components/                        # Các linh kiện tái sử dụng (ProductCard, v.v.)
+│   └── lib/                               # SDK kết nối API Gateway, types & helpers
+│
+├── scripts/                               # Các kịch bản tự động hóa kiểm thử
+│   ├── test.ps1                           # Kiểm thử toàn bộ hệ thống (Maven + NPM Build)
+│   └── test-cod-http.ps1                  # Kịch bản kiểm thử luồng đặt đơn COD thực tế
+│
+├── docker-compose.yml                     # Cấu hình cụm 9 container chạy đồng bộ
+├── .env.example                           # Mẫu biến môi trường cấu hình cổng, mật khẩu DB
+└── README.md                              # Tài liệu hướng dẫn toàn diện này
+```
+
+---
+
+## 7. Hướng dẫn cài đặt, chạy và dừng hệ thống cho người mới
+
+### 7.1. Yêu cầu môi trường tiên quyết (Prerequisites)
+Trước khi bắt đầu, hãy đảm bảo máy tính của bạn đã cài đặt:
+1. **Docker Desktop** (bắt buộc): Đã bật và đang chạy (hỗ trợ Docker Compose v2).
+2. **RAM khả dụng**: Khuyến nghị tối thiểu **4 GB RAM trống** để vận hành trơn tru cả cụm 9 container.
+3. *(Tùy chọn — chỉ khi muốn chạy không qua Docker)*: **Java 21 LTS**, **Maven 3.9+**, **Node.js 20+**.
+
+---
+
+### 7.2. Khởi chạy 1 lệnh duy nhất với Docker Compose (Khuyên dùng)
+
+Đây là cách đơn giản và an toàn nhất, hệ thống sẽ tự động cấu hình cơ sở dữ liệu PostgreSQL, chạy Flyway migration để tạo toàn bộ bảng dữ liệu, biên dịch 7 microservices Java và ứng dụng Next.js.
+
+Mở terminal (PowerShell trên Windows, hoặc Terminal trên macOS/Linux) tại thư mục gốc của dự án:
+
+```bash
+# Bước 1: Sao chép file biến môi trường mẫu (nếu chưa có file .env)
+cp .env.example .env
+
+# Bước 2: Khởi động toàn bộ 9 container ngầm trong nền
+docker compose up -d --build
+```
+
+Quá trình build và khởi động lần đầu sẽ mất khoảng 2 - 3 phút để tải base image và biên dịch mã nguồn.
+
+Sau khi lệnh hoàn tất, toàn bộ hệ thống đã sẵn sàng phục vụ tại:
+- **Website FLORA**: [http://localhost:3000](http://localhost:3000)
+- **API Gateway**: [http://localhost:8080](http://localhost:8080)
+
+---
+
+### 7.3. Cách kiểm tra trạng thái hoạt động và xem log
+
+#### Kiểm tra danh sách container đang chạy:
+```bash
+docker compose ps
+```
+Bạn sẽ thấy đầy đủ **9 container** đều ở trạng thái `Up`:
+- `cua_hang_hoa_flora-postgres-1` (Cơ sở dữ liệu)
+- `cua_hang_hoa_flora-api-gateway-1` (Cổng API)
+- `cua_hang_hoa_flora-identity-1` (Xác thực người dùng)
+- `cua_hang_hoa_flora-catalog-1` (Danh mục sản phẩm hoa)
+- `cua_hang_hoa_flora-inventory-1` (Quản lý kho hoa)
+- `cua_hang_hoa_flora-order-1` (Đơn hàng & giỏ hàng)
+- `cua_hang_hoa_flora-payment-1` (Thanh toán)
+- `cua_hang_hoa_flora-customer-1` (Khách hàng & đánh giá)
+- `cua_hang_hoa_flora-frontend-1` (Giao diện người dùng)
+
+#### Xem log của toàn hệ thống theo thời gian thực:
+```bash
+docker compose logs -f
+```
+
+#### Xem log của riêng một dịch vụ cụ thể (Ví dụ xem log của order-service hoặc frontend):
+```bash
+docker compose logs -f order
+docker compose logs -f frontend
+docker compose logs -f catalog
+```
+*(Bấm `Ctrl + C` để thoát màn hình theo dõi log)*.
+
+---
+
+### 7.4. Hướng dẫn dừng và dọn dẹp hệ thống (Stop & Down)
+
+Khi không sử dụng hoặc muốn giải phóng tài nguyên máy tính, bạn thực hiện như sau:
+
+#### Lựa chọn 1: Dừng tạm thời hệ thống (Dữ liệu và container được bảo lưu)
+```bash
+docker compose stop
+```
+*(Khi muốn tiếp tục dùng lại, chỉ cần gõ `docker compose start` mà không cần build lại)*.
+
+#### Lựa chọn 2: Dừng hoàn toàn và gỡ bỏ containers (Khuyên dùng)
+```bash
+docker compose down
+```
+Lệnh này sẽ dừng an toàn tất cả 9 container và ngắt mạng nội bộ. Toàn bộ dữ liệu cơ sở dữ liệu PostgreSQL (các sản phẩm, đơn hàng, tài khoản) vẫn được lưu trữ an toàn trong Docker Volume.
+
+#### Lựa chọn 3: Reset toàn bộ hệ thống về trạng thái ban đầu (Xóa trắng dữ liệu)
+Nếu bạn muốn xóa sạch dữ liệu đơn hàng test để database quay về trạng thái hạt giống ban đầu:
+```bash
+docker compose down -v
+```
+*(Cờ `-v` sẽ xóa sạch các Docker Volume chứa dữ liệu database)*.
+
+---
+
+### 7.5. Khởi chạy thủ công cho lập trình viên (Local Development)
+
+Nếu bạn là lập trình viên muốn chỉnh sửa code và xem thay đổi ngay mà không cần rebuild container:
+
+1. **Khởi chạy chỉ riêng cơ sở dữ liệu PostgreSQL qua Docker**:
    ```bash
-   cp .env.example .env
+   docker compose up -d postgres
    ```
-2. **Khởi động toàn bộ cụm dịch vụ**:
-   ```powershell
-   docker compose up -d --build
-   ```
-3. **Kiểm tra trạng thái các container**:
-   ```powershell
-   docker compose ps
-   ```
-4. **Truy cập ứng dụng**:
-   - Giao diện Website FLORA: [http://localhost:3000](http://localhost:3000)
-   - API Gateway: [http://localhost:8080](http://localhost:8080)
-   - Cổng Quản trị viên: [http://localhost:3000/admin](http://localhost:3000/admin)
-   - Cổng Nhân viên xử lý đơn: [http://localhost:3000/nhan-vien](http://localhost:3000/nhan-vien)
-
-### Cách 2: Chạy trực tiếp trên máy phát triển (Local Development)
-
-Nếu muốn chạy từng service riêng biệt mà không dùng container cho ứng dụng:
-
-1. **Chạy PostgreSQL**:
-   Đảm bảo PostgreSQL 16 đang chạy tại cổng `5432`, có database tên `flora` với user `flora` và password theo cấu hình trong `.env`.
-2. **Khởi chạy lần lượt các backend services**:
-   Tại mỗi thư mục `backend/<service>` (ví dụ `identity-service`, `catalog-service`, ...):
-   ```powershell
+2. **Chạy các service backend mong muốn**:
+   Đi vào thư mục service (ví dụ `backend/catalog-service`) và chạy:
+   ```bash
    mvn spring-boot:run
    ```
-3. **Khởi chạy Frontend**:
-   Tại thư mục `frontend`:
-   ```powershell
+3. **Chạy ứng dụng Frontend Next.js**:
+   Mở terminal tại thư mục `frontend`:
+   ```bash
    npm install
    npm run dev
    ```
-   Website sẽ sẵn sàng tại `http://localhost:3000`.
+   Giao diện chạy chế độ Hot-Reload tại [http://localhost:3000](http://localhost:3000).
 
 ---
 
-## 6. Các chức năng và Màn hình chính
+## 8. Tài khoản thử nghiệm & Phân quyền người dùng
 
-### 6.1. Giao diện Khách hàng (Customer Interface)
-- **Trang chủ (`/`)**:
-  - Banner câu chuyện thương hiệu FLORA, danh mục hoa nổi bật (Bó hoa, Giỏ hoa, Kệ khai trương, Hoa cưới).
-  - Bộ công cụ tìm hoa nhanh theo Dịp tặng và Ngân sách.
-  - Sản phẩm bán chạy tuyển chọn, cam kết dịch vụ (Giao 2h, Ảnh thật trước khi giao, Hoa tươi 3 ngày).
-  - Cảm nhận từ khách hàng thực tế và Footer thông tin chính sách.
-- **Danh sách sản phẩm (`/san-pham`)**:
-  - Bộ lọc đa tiêu chí linh hoạt: Theo Dịp tặng, Loại hoa (Hồng Ecuador, Cẩm tú cầu, Baby, Tulip, Hướng dương), Màu sắc và Khoảng giá.
-  - Tìm kiếm theo từ khóa tên hoa/mô tả.
-  - Sắp xếp linh hoạt: Mới nhất, Giá tăng dần, Giá giảm dần.
-- **Chi tiết sản phẩm (`/san-pham/[id]`)**:
-  - Thư viện hình ảnh sắc nét.
-  - Chi tiết kích thước (Dài x Rộng x Cao, Khối lượng), thông điệp ý nghĩa hoa.
-  - Chính sách đổi trả và bù hoa tương đương nếu hoa theo mùa bị khan hiếm.
-  - Nút thêm vào giỏ, nút Mua ngay, nút Yêu thích (Wishlist).
-  - Danh sách đánh giá sao và bình luận thực tế từ người mua.
-  - Khối hoa tươi tương tự gợi ý.
-- **Giỏ hàng (`/gio-hang`)**:
-  - Danh sách hoa đã chọn, tăng/giảm số lượng theo thời gian thực, xóa sản phẩm.
-  - Tóm tắt tổng tiền hàng minh bạch.
-- **Đặt hàng / Checkout (`/thanh-toan`)**:
-  - Thông tin người đặt và người nhận hoa.
-  - Sổ địa chỉ tiện lợi (tự động điền địa chỉ mặc định của khách).
-  - Chọn ngày giao và khung giờ giao hoa (08:00 - 12:00, 13:00 - 17:00, 17:00 - 20:00).
-  - Lời nhắn viết tay gửi kèm trên thiệp mừng.
-  - Ô nhập mã Voucher giảm giá (`FLORA10`, `FLORANEW`, `FLORALOVE`).
-  - Lựa chọn phương thức thanh toán: COD hoặc MoMo Trực tuyến.
-- **Xác nhận đơn hàng (`/thanh-toan/[id]`)**:
-  - Hiển thị chi tiết bảng tính tiền (Tiền hàng, Giảm giá voucher, Phí ship, Tổng COD).
-  - Tùy chọn giả lập quét mã MoMo Sandbox trực tiếp.
-- **Lịch sử đơn hàng (`/don-hang`) & Chi tiết đơn (`/don-hang/[id]`)**:
-  - Bộ lọc phân loại trạng thái: `Tất cả`, `Chờ xử lý`, `Đang cắm hoa`, `Đang giao`, `Đã giao`, `Đã nhận`, `Đã hủy`.
-  - Khách hàng có thể tự Hủy đơn khi đơn còn ở trạng thái `PENDING` (hệ thống sẽ tự động giải phóng tồn kho).
-  - Khách hàng bấm Xác nhận "Đã nhận được hoa" khi đơn đạt `COMPLETED` để chuyển sang `RECEIVED`.
-  - Nút "Đánh giá sản phẩm" cho từng sản phẩm trong đơn đã giao thành công.
-- **Trang Tài khoản (`/tai-khoan`)**:
-  - Đăng ký tài khoản mới và Đăng nhập bảo mật.
-  - Phím bấm Đăng nhập nhanh một chạm (Quick Demo Login) dành cho cả 3 vai trò: Khách hàng, Nhân viên, Admin.
-  - Quản lý hồ sơ cá nhân và Sổ địa chỉ giao hàng (Thêm địa chỉ mới, Xóa, Thiết lập địa chỉ mặc định).
-  - Danh sách sản phẩm hoa yêu thích (Wishlist).
+Hệ thống đã nạp sẵn hạt giống dữ liệu (Seeds) cho 3 nhóm vai trò nghiệp vụ. Bạn có thể đăng nhập trực tiếp tại trang [http://localhost:3000/dang-nhap](http://localhost:3000/dang-nhap):
 
-### 6.2. Giao diện Nhân viên (`/nhan-vien`)
-- Dành riêng cho nhân viên cửa hàng và thợ cắm hoa.
-- Theo dõi toàn bộ danh sách đơn đặt theo thời gian thực.
-- Cập nhật tiến độ cắm hoa và vận chuyển:
-  - Tiếp nhận đơn: `PENDING` ➔ `PROCESSING` (Bắt đầu cắm hoa).
-  - Bàn giao shipper: `PROCESSING` ➔ `SHIPPED` (Đang giao hàng).
-  - Giao thành công: `SHIPPED` ➔ `COMPLETED` (Đã giao tới tay người nhận).
+| Vai trò | Email đăng nhập | Mật khẩu chung | Các trang được phép truy cập | Trải nghiệm kiểm thử chính |
+| :--- | :--- | :--- | :--- | :--- |
+| 🌸 **Khách hàng** (`CUSTOMER`) | `customer@flora.vn` | `Password123@` | `/`, `/san-pham`, `/gio-hang`, `/thanh-toan`, `/don-hang`, `/yeu-thich` | Lọc hoa theo 110 loài, đặt đơn COD/MoMo, nhập mã voucher `FLORANEW`, hủy đơn chờ xử lý, nhận hoa, đánh giá ★★★★★. |
+| 🌿 **Nhân viên** (`STAFF`) | `staff@flora.vn` | `Password123@` | `/nhan-vien`, cùng các trang công khai | Tiếp nhận đơn đặt, chuyển trạng thái `Chờ xử lý ➔ Đang cắm hoa ➔ Đang giao ➔ Đã giao`. |
+| 👑 **Quản trị viên** (`ADMIN`) | `admin@flora.vn` | `Password123@` | `/admin`, `/admin/san-pham`, `/admin/ton-kho`, `/admin/vouchers`, `/admin/don-hang` | Xem biểu đồ KPI doanh thu, thêm/sửa hoa tươi, nhập thêm tồn kho hoa, tạo voucher khuyến mãi mới, xử lý hoàn tiền đơn hủy. |
 
-### 6.3. Giao diện Quản trị viên (`/admin`)
-- **Bảng điều khiển KPI (`/admin`)**:
-  - Thống kê tổng doanh thu thực tế.
-  - Số lượng đơn theo từng trạng thái (Đơn mới, Đang xử lý, Đang giao, Đã giao, Đã hủy).
-  - Cảnh báo tồn kho thấp cho các loại hoa sắp hết.
-- **Quản lý sản phẩm (`/admin/san-pham`)**:
-  - Thêm mới sản phẩm hoa tươi (Tên, SKU, Danh mục, Giá bán, Ảnh minh họa, Kích thước).
-  - Bật/Tắt trạng thái mở bán của sản phẩm (`ACTIVE` / `INACTIVE`).
-- **Quản lý kho hoa (`/admin/ton-kho`)**:
-  - Xem số lượng tồn thực tế (`on_hand`), lượng đang giữ cho đơn chờ (`reserved`), và tồn khả dụng (`available`).
-  - Biểu mẫu điều chỉnh tồn kho (Nhập thêm hoa, Điều chỉnh hư hỏng/héo, Kiểm kê thực tế) có ghi nhận lý do và lưu vết lịch sử biến động (`stock_movements`).
-- **Quản lý Voucher (`/admin/vouchers`)**:
-  - Danh sách mã khuyến mãi, tỷ lệ giảm %, số tiền giảm tối đa, giá trị đơn tối thiểu, số lượt đã dùng và hạn sử dụng.
-  - Biểu mẫu tạo mới mã Voucher khuyến mãi cho các chiến dịch.
-- **Quản lý đơn hàng & Hoàn tiền (`/admin/don-hang`)**:
-  - Bộ lọc đơn hàng nâng cao theo mã đơn và trạng thái.
-  - Can thiệp chuyển trạng thái đơn hàng linh hoạt.
-  - Xử lý hoàn tiền (`Refund`) đối với các đơn hàng bị hủy hoặc có sự cố thanh toán.
+> [!NOTE]
+> Giao diện Đăng nhập và Đăng ký đã được tách riêng biệt tại 2 đường dẫn độc lập:
+> - Đăng nhập: [http://localhost:3000/dang-nhap](http://localhost:3000/dang-nhap)
+> - Đăng ký tài khoản mới: [http://localhost:3000/dang-ky](http://localhost:3000/dang-ky)
 
 ---
 
-## 7. Các chức năng Giả lập (Mock / Simulated Features)
+## 9. Bảng ánh xạ Cổng dịch vụ, Swagger UI & API Docs
 
-Nhằm đảm bảo an toàn tuyệt đối và tính độc lập của môi trường phát triển cục bộ (không phụ thuộc bên thứ 3 và không đưa thông tin bí mật lên git):
+Mỗi microservice đều tích hợp sẵn bộ tài liệu **OpenAPI 3 / Swagger UI**, cho phép bạn kiểm tra và gọi thử API trực tiếp trên trình duyệt:
 
-1. **MoMo Sandbox Mock Adapter**:
-   - Được đánh dấu rõ ràng là cơ chế mô phỏng (`[MÔ PHỎNG / MOCK]`).
-   - Cung cấp tính năng giả lập tạo mã QR/liên kết thanh toán MoMo Sandbox.
-   - Hỗ trợ endpoint `/api/payments/momo/simulate` để mô phỏng sự kiện khách hàng quét mã và thanh toán thành công, gửi webhook callback cập nhật trạng thái thanh toán sang `PAID` mà không cần tài khoản doanh nghiệp MoMo thật.
-2. **GHN Shipping Fee Mock**:
-   - Phí vận chuyển mặc định tạm tính là `30.000 VNĐ`.
-   - Trong quá trình phát triển, cước phí được tính toán nội bộ để phản ánh chính xác cấu trúc bảng báo giá (`checkout_quotes`) trước khi tích hợp API chính thức của Giao Hàng Nhanh / Ahamove.
+| Dịch vụ | Cổng nội bộ | Địa chỉ Swagger UI | Đường dẫn API Schema JSON |
+| :--- | :---: | :--- | :--- |
+| **API Gateway** | `8080` | [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html) | `http://localhost:8080/v3/api-docs` |
+| **Identity Service** | `8081` | [http://localhost:8081/swagger-ui.html](http://localhost:8081/swagger-ui.html) | `http://localhost:8081/v3/api-docs` |
+| **Catalog Service** | `8082` | [http://localhost:8082/swagger-ui.html](http://localhost:8082/swagger-ui.html) | `http://localhost:8082/v3/api-docs` |
+| **Inventory Service** | `8083` | [http://localhost:8083/swagger-ui.html](http://localhost:8083/swagger-ui.html) | `http://localhost:8083/v3/api-docs` |
+| **Order Service** | `8084` | [http://localhost:8084/swagger-ui.html](http://localhost:8084/swagger-ui.html) | `http://localhost:8084/v3/api-docs` |
+| **Payment Service** | `8085` | [http://localhost:8085/swagger-ui.html](http://localhost:8085/swagger-ui.html) | `http://localhost:8085/v3/api-docs` |
+| **Customer Service** | `8086` | [http://localhost:8086/swagger-ui.html](http://localhost:8086/swagger-ui.html) | `http://localhost:8086/v3/api-docs` |
+| **PostgreSQL Database**| `5432` | *(Kết nối qua DBeaver / pgAdmin với user: `flora`, db: `flora`)* | — |
+| **Web Frontend** | `3000` | [http://localhost:3000](http://localhost:3000) | — |
 
 ---
 
-## 8. Hướng dẫn chạy Bộ kiểm thử (Automated Tests)
+## 10. Bộ kịch bản kiểm thử tự động (Automated Testing)
 
-### Chạy kiểm thử tự động toàn bộ hệ thống:
+Dự án cung cấp sẵn các kịch bản PowerShell giúp kiểm tra chất lượng code tự động từ đầu đến cuối:
+
+### 1. Kiểm thử tích hợp toàn diện hệ thống:
 ```powershell
 & scripts/test.ps1
 ```
-Kịch bản `test.ps1` sẽ tự động:
-1. Xác thực cú pháp file cấu hình Docker Compose `docker-compose.yml`.
-2. Chạy toàn bộ Unit & Integration tests bằng Maven cho cả 7 microservices (`api-gateway`, `identity-service`, `catalog-service`, `inventory-service`, `order-service`, `payment-service`, `customer-service`).
-3. Cài đặt thư viện và build kiểm tra tính hợp lệ của toàn bộ mã nguồn Next.js TypeScript (`npm run build`).
+Kịch bản sẽ tự động duyệt qua tất cả 7 service backend để chạy toàn bộ các test case Java JUnit/Mockito, kiểm tra cú pháp cấu hình Docker, và chạy lệnh `next build` xác thực tính hợp lệ về kiểu dữ liệu TypeScript của Frontend.
 
-### Chạy kịch bản kiểm thử luồng COD với Database thực tế:
-Khi docker compose đang chạy, thực thi:
+### 2. Kiểm thử luồng đặt đơn COD và giữ tồn kho thực tế:
+Khi hệ thống đang chạy (`docker compose ps` báo Up), thực thi:
 ```powershell
 & scripts/test-cod-http.ps1
 ```
-Kịch bản sẽ tự động:
-- Đăng ký và đăng nhập tài khoản khách hàng thử nghiệm ngẫu nhiên.
-- Tạo báo giá giao hoa và đặt đơn COD kèm Idempotency-Key.
-- Kiểm tra tính idempotent (gửi lại cùng key phải trả về cùng đơn hàng, không trừ tồn 2 lần).
-- Kiểm tra dữ liệu giữ kho (`HELD`) trong schema `inventory`.
-- Hủy đơn hàng và kiểm tra việc giải phóng tồn kho tự động.
-- Dọn dẹp sạch sẽ toàn bộ dữ liệu kiểm thử tổng hợp khỏi database.
+Kịch bản thực hiện kiểm thử tự động chu trình khép kín:
+1. Đăng ký một tài khoản khách hàng mới ngẫu nhiên.
+2. Thêm hoa vào giỏ, tạo báo giá và đặt đơn hàng COD kèm Idempotency-Key.
+3. Kiểm tra tính Idempotent (gửi lại request cùng key không tạo thêm đơn mới và không trừ tồn kho lần 2).
+4. Xác minh lượng hoa đã được chuyển sang trạng thái `HELD` trong `inventory`.
+5. Thực hiện hủy đơn hàng và kiểm tra tồn kho được nhả lại thành công.
+6. Xóa sạch dữ liệu thử nghiệm, không làm bẩn database.
 
 ---
 
-## 9. Quyết định Nghiệp vụ cần xác nhận trước khi lên Production
+## 11. Quy định nghiệp vụ cần lưu ý trước khi lên Production
 
-1. **Chính sách hủy đơn khi hoa đã cắm**:
-   - Hiện tại: Khách hàng chỉ được tự hủy đơn khi trạng thái là `PENDING` (chờ xử lý). Khi đơn đã sang `PROCESSING` (hoa đã được nghệ nhân cắt cành, cắm vào xốp/giỏ), hệ thống khóa quyền tự hủy của khách để tránh tổn thất nguyên vật liệu. Cần xác nhận tỷ lệ hoàn tiền hoặc phí hủy nếu khách yêu cầu hủy qua tổng đài khi hoa đã cắm xong.
-2. **Thời hạn giữ tồn kho (Stock Reservation TTL)**:
-   - Hiện tại đơn `PENDING` được giữ tồn cho tới khi xác nhận hoặc hủy. Trên production nên bổ sung một cron job/worker tự động nhả tồn sau `15 - 30 phút` nếu khách hàng không hoàn tất thanh toán trực tuyến.
-3. **Chính sách thay thế hoa theo mùa**:
-   - Cần bổ sung quy trình chụp ảnh thực tế gửi khách hàng qua Zalo/Email xác nhận trước khi giao nếu có loại hoa phụ buộc phải thay thế do khan hiếm theo thời tiết.
+1. **Khóa quyền hủy đơn khi hoa đã cắm**:
+   - Hiện tại hệ thống tự động khóa tính năng tự hủy của khách khi đơn đạt `PROCESSING`. Trên môi trường thực tế, nếu khách khăng khăng hủy qua điện thoại, quản trị viên sử dụng trang `/admin/don-hang` để hủy cưỡng chế và ghi nhận phí phạt vật liệu cắm hoa.
+2. **Cơ chế thu hồi tồn kho giữ chỗ (Stock Hold TTL)**:
+   - Các đơn hàng thanh toán trực tuyến chưa hoàn tất sau 30 phút nên được quét bởi một tác vụ định kỳ (`Scheduled Worker`) để tự động chuyển sang `CANCELLED` và nhả lại tồn cho khách hàng khác.
+3. **Quy trình gửi ảnh thật trước khi giao hoa**:
+   - Trong ngành hoa tươi cao cấp, trước khi shipper xuất phát, cửa hàng nên chụp ảnh sản phẩm thật hoàn thiện và gửi qua Zalo/Email cho người đặt duyệt hình thức.
+
+---
+
+**FLORA — Gửi trọn yêu thương qua từng cánh hoa.** 💐  
+*Mã nguồn được duy trì và phát triển với tiêu chuẩn chất lượng cao nhất.*

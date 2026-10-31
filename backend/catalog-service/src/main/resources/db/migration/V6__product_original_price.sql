@@ -24,3 +24,4 @@ UPDATE catalog.products SET original_price = 1150000.00 WHERE sku = 'FL-017';
 UPDATE catalog.products SET original_price = 2850000.00 WHERE sku = 'FL-018';
 UPDATE catalog.products SET original_price = 890000.00 WHERE sku = 'FL-019';
 UPDATE catalog.products SET original_price = 800000.00 WHERE sku = 'FL-020';
+
