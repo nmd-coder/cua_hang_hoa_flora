@@ -389,6 +389,7 @@ export async function toggleWishlist(form: FormData) {
   if (!token) redirect("/tai-khoan?error=" + error("Vui lòng đăng nhập để lưu vào yêu thích"));
   const productId = String(form.get("productId") || "");
   const current = form.get("isFavorited") === "true";
+  const returnTo = String(form.get("returnTo") || "");
   try {
     await fetch(getBase() + "/api/customer/wishlist/" + productId, {
       method: current ? "DELETE" : "POST",
@@ -396,7 +397,26 @@ export async function toggleWishlist(form: FormData) {
       cache: "no-store",
     });
   } catch {}
-  redirect("/tai-khoan#yeu-thich");
+  if (returnTo) {
+    const msg = current ? "Đã xóa khỏi danh sách yêu thích" : "Đã lưu vào danh sách yêu thích";
+    const sep = returnTo.includes("?") ? "&" : "?";
+    redirect(`${returnTo}${sep}notice=${notice(msg)}`);
+  }
+  redirect("/yeu-thich");
+}
+
+export async function removeFromWishlist(form: FormData) {
+  const token = (await cookies()).get("flora_session")?.value;
+  if (!token) redirect("/tai-khoan");
+  const productId = String(form.get("productId") || "");
+  try {
+    await fetch(getBase() + "/api/customer/wishlist/" + productId, {
+      method: "DELETE",
+      headers: { Authorization: "Bearer " + token },
+      cache: "no-store",
+    });
+  } catch {}
+  redirect("/yeu-thich?notice=" + notice("Đã xóa hoa khỏi danh sách yêu thích"));
 }
 
 export async function submitReview(form: FormData) {

@@ -15,6 +15,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const token = (await cookies()).get("flora_session")?.value;
   let userProfile: { email?: string; roles?: string[] } | null = null;
   let cartCount = 0;
+  let wishlistCount = 0;
 
   if (token) {
     try {
@@ -25,14 +26,26 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       });
       if (meRes.ok) userProfile = await meRes.json();
 
-      const cartRes = await fetch(getBase() + "/api/cart", {
-        headers: { Authorization: "Bearer " + token },
-        cache: "no-store",
-        signal: AbortSignal.timeout(4000),
-      });
+      const [cartRes, wishRes] = await Promise.all([
+        fetch(getBase() + "/api/cart", {
+          headers: { Authorization: "Bearer " + token },
+          cache: "no-store",
+          signal: AbortSignal.timeout(4000),
+        }),
+        fetch(getBase() + "/api/customer/wishlist", {
+          headers: { Authorization: "Bearer " + token },
+          cache: "no-store",
+          signal: AbortSignal.timeout(4000),
+        }),
+      ]);
+
       if (cartRes.ok) {
         const cartItems = await cartRes.json() as { quantity: number }[];
         cartCount = cartItems.reduce((acc, curr) => acc + (curr.quantity || 1), 0);
+      }
+      if (wishRes.ok) {
+        const wishItems = await wishRes.json() as string[];
+        wishlistCount = Array.isArray(wishItems) ? wishItems.length : 0;
       }
     } catch {
       // Continue gracefully if network fails
@@ -127,8 +140,14 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             />
           </form>
 
-          {/* Nhóm thao tác: Giỏ hàng, Đơn hàng, Nhân viên/Quản trị, Đăng nhập, Đăng ký */}
+          {/* Nhóm thao tác: Yêu thích, Giỏ hàng, Đơn hàng, Nhân viên/Quản trị, Đăng nhập, Đăng ký */}
           <nav className="header-actions" aria-label="Điều hướng người dùng">
+            <a href="/yeu-thich" className="nav-action-link" title="Hoa yêu thích">
+              <span className="action-icon">♥</span>
+              <span className="action-text">Yêu thích</span>
+              {wishlistCount > 0 && <span className="badge-count">{wishlistCount}</span>}
+            </a>
+
             <a href="/gio-hang" className="nav-action-link" title="Xem giỏ hàng">
               <span className="action-icon">🛒</span>
               <span className="action-text">Giỏ hàng</span>

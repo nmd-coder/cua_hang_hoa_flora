@@ -107,6 +107,23 @@ export default async function AccountPage({
               </form>
             </div>
 
+            {/* Wishlist Box */}
+            <div id="yeu-thich" className="panel" style={{ borderLeft: "4px solid var(--accent-peach)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <h3 style={{ margin: 0 }}>♥ Hoa yêu thích ({wishlistIds.length})</h3>
+                  <p style={{ margin: "0.2rem 0 0", fontSize: "0.88rem", color: "var(--text-muted)" }}>
+                    {wishlistIds.length > 0
+                      ? `Bạn đã lưu ${wishlistIds.length} mẫu hoa vào danh sách mong muốn.`
+                      : "Bạn chưa lưu mẫu hoa nào vào danh sách."}
+                  </p>
+                </div>
+                <a href="/yeu-thich" className="button button-sm button-secondary">
+                  Xem danh sách →
+                </a>
+              </div>
+            </div>
+
             {/* Quick links for Staff & Admin */}
             {(user.roles.includes("STAFF") || user.roles.includes("ADMIN")) && (
               <div className="panel" style={{ background: "#F0F5FA", border: "1px solid #C2D5E8" }}>

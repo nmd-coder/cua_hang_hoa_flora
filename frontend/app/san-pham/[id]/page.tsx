@@ -166,13 +166,28 @@ export default async function ProductDetailPage({
           </form>
 
           {/* Wishlist toggle */}
-          <form action={toggleWishlist}>
+          <form action={toggleWishlist} style={{ marginBottom: "0.5rem" }}>
             <input type="hidden" name="productId" value={product.id} />
             <input type="hidden" name="isFavorited" value={String(isFavorited)} />
-            <button type="submit" className="button button-secondary" style={{ width: "100%" }}>
-              {isFavorited ? "♥ Đã lưu trong yêu thích" : "♡ Thêm vào danh sách yêu thích"}
+            <input type="hidden" name="returnTo" value={`/san-pham/${product.slug}`} />
+            <button
+              type="submit"
+              className="button button-secondary"
+              style={{
+                width: "100%",
+                borderColor: isFavorited ? "var(--accent-peach)" : undefined,
+                color: isFavorited ? "#A83232" : undefined,
+                fontWeight: 600,
+              }}
+            >
+              {isFavorited ? "♥ Đã lưu trong yêu thích (Bấm để hủy)" : "♡ Thêm vào danh sách yêu thích"}
             </button>
           </form>
+          <div style={{ textAlign: "center", marginBottom: "1rem" }}>
+            <a href="/yeu-thich" style={{ fontSize: "0.85rem", color: "var(--primary)", textDecoration: "underline", fontWeight: 600 }}>
+              Xem danh sách yêu thích của bạn →
+            </a>
+          </div>
 
           {/* Store & Replacement Policy */}
           <div className="policy-box">
