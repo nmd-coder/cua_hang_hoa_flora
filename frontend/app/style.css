@@ -1533,3 +1533,372 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   color: #166534;
   border: 1px solid #BBF7D0;
 }
+
+/* ========================================================
+   MODERN E-COMMERCE FILTER & SEARCH STYLES
+   ======================================================== */
+
+/* Quick Filter Ribbon (Thanh lọc nhanh ngang) */
+.quick-filter-ribbon {
+  display: flex;
+  gap: 0.6rem;
+  overflow-x: auto;
+  padding: 0.5rem 0.2rem 1.4rem;
+  margin-bottom: 1.2rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(24, 61, 45, 0.2) transparent;
+  -webkit-overflow-scrolling: touch;
+}
+
+.quick-filter-ribbon::-webkit-scrollbar {
+  height: 5px;
+}
+
+.quick-filter-ribbon::-webkit-scrollbar-thumb {
+  background: rgba(24, 61, 45, 0.2);
+  border-radius: var(--radius-full);
+}
+
+.quick-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 1.15rem;
+  border-radius: var(--radius-full);
+  background: #FFFFFF;
+  border: 1px solid rgba(24, 61, 45, 0.12);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-main);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  flex-shrink: 0;
+}
+
+.quick-pill:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: rgba(24, 61, 45, 0.04);
+  transform: translateY(-1px);
+}
+
+.quick-pill.active {
+  background: var(--primary) !important;
+  color: #FFFFFF !important;
+  border-color: var(--primary) !important;
+  box-shadow: 0 4px 14px rgba(24, 61, 45, 0.25);
+}
+
+/* Active Filters Bar */
+.active-filters-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-bottom: 1.6rem;
+  padding: 0.85rem 1.1rem;
+  background: #FAF8F4;
+  border-radius: var(--radius-md);
+  border: 1px dashed rgba(24, 61, 45, 0.18);
+}
+
+.active-filters-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-right: 0.3rem;
+}
+
+.active-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: var(--radius-full);
+  background: #FFFFFF;
+  border: 1px solid rgba(24, 61, 45, 0.2);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: none;
+  transition: all 0.18s ease;
+  box-shadow: var(--shadow-xs);
+}
+
+.active-filter-chip .chip-remove {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1;
+  transition: color 0.15s ease;
+}
+
+.active-filter-chip:hover {
+  background: #FEECE8;
+  border-color: #A83232;
+  color: #A83232;
+}
+
+.active-filter-chip:hover .chip-remove {
+  color: #A83232;
+}
+
+.clear-all-link {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #A83232;
+  text-decoration: underline;
+  margin-left: auto;
+  cursor: pointer;
+}
+
+/* Modern Filter Sidebar */
+.modern-filter-sidebar {
+  background: #FFFFFF;
+  border: 1px solid rgba(24, 61, 45, 0.1);
+  border-radius: var(--radius-lg);
+  padding: 1.8rem;
+  box-shadow: 0 4px 20px rgba(24, 61, 45, 0.05);
+  position: sticky;
+  top: 90px;
+}
+
+.filter-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.85rem;
+}
+
+.filter-section-title {
+  font-size: 0.92rem;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-main);
+}
+
+/* Search Box inside Sidebar */
+.sidebar-search-box {
+  position: relative;
+  margin-bottom: 1.4rem;
+}
+
+.sidebar-search-box input {
+  width: 100%;
+  padding: 0.65rem 2.2rem 0.65rem 2.4rem;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(24, 61, 45, 0.15);
+  font-size: 0.88rem;
+  background: #FAF8F4;
+  transition: all 0.2s ease;
+}
+
+.sidebar-search-box input:focus {
+  background: #FFFFFF;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+.sidebar-search-icon {
+  position: absolute;
+  left: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.88rem;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.sidebar-search-clear {
+  position: absolute;
+  right: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+}
+
+/* Category Choice Cards */
+.category-choice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.category-choice-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 0.85rem;
+  border-radius: var(--radius-sm);
+  background: #FAF8F4;
+  border: 1px solid transparent;
+  text-decoration: none;
+  color: var(--text-main);
+  font-size: 0.88rem;
+  font-weight: 600;
+  transition: all 0.18s ease;
+}
+
+.category-choice-item:hover {
+  background: #FFFFFF;
+  border-color: rgba(24, 61, 45, 0.2);
+  color: var(--primary);
+}
+
+.category-choice-item.active {
+  background: var(--primary) !important;
+  color: #FFFFFF !important;
+  border-color: var(--primary) !important;
+}
+
+/* Color Swatches Grid */
+.color-swatches-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.55rem;
+}
+
+.color-swatch-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.3rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(24, 61, 45, 0.08);
+  background: #FAF8F4;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.color-swatch-chip:hover {
+  background: #FFFFFF;
+  border-color: var(--primary);
+}
+
+.color-swatch-chip.active {
+  border-color: var(--primary);
+  background: #FFFFFF;
+  box-shadow: 0 0 0 2px var(--primary);
+}
+
+.color-circle {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  display: grid;
+  place-items: center;
+  font-size: 0.75rem;
+  font-weight: bold;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.color-chip-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.color-swatch-chip.active .color-chip-text {
+  color: var(--primary);
+  font-weight: 750;
+}
+
+/* Filter Choice Pills Wrap */
+.filter-choice-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.filter-choice-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-full);
+  background: #FAF8F4;
+  border: 1px solid rgba(24, 61, 45, 0.1);
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-main);
+  text-decoration: none;
+  transition: all 0.18s ease;
+}
+
+.filter-choice-pill:hover {
+  background: #FFFFFF;
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.filter-choice-pill.active {
+  background: var(--primary) !important;
+  color: #FFFFFF !important;
+  border-color: var(--primary) !important;
+  box-shadow: 0 2px 8px rgba(24, 61, 45, 0.2);
+}
+
+/* Custom Price Input Inputs */
+.custom-price-inputs {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.8rem;
+}
+
+.custom-price-inputs input {
+  padding: 0.5rem 0.6rem;
+  font-size: 0.84rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(24, 61, 45, 0.15);
+  background: #FAF8F4;
+}
+
+/* Top Control Bar */
+.catalog-top-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.4rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(24, 61, 45, 0.08);
+}
+
+.results-count-badge {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+.results-count-badge strong {
+  color: var(--primary);
+}
+
+.sort-select-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sort-select-wrapper select {
+  padding: 0.48rem 1.8rem 0.48rem 0.9rem;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(24, 61, 45, 0.18);
+  font-size: 0.88rem;
+  font-weight: 600;
+  background: #FFFFFF;
+  cursor: pointer;
+}
+
