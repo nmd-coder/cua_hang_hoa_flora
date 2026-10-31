@@ -6,3 +6,4 @@ WHERE product_id = '10000000-0000-0000-0000-000000000010';
 UPDATE catalog.product_images
 SET url = '/images/products/may-trang-bong-benh.jpg'
 WHERE product_id = '10000000-0000-0000-0000-000000000011';
+
