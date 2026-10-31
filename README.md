@@ -270,57 +270,72 @@ Trước khi bắt đầu, hãy đảm bảo máy tính của bạn đã cài đ
 
 ---
 
-### 7.2. Khởi chạy 1 lệnh duy nhất với Docker Compose (Khuyên dùng)
+### 7.2. Các bước khởi chạy hoàn chỉnh với Docker Compose (Khuyên dùng)
 
-Đây là cách đơn giản và an toàn nhất, hệ thống sẽ tự động cấu hình cơ sở dữ liệu PostgreSQL, chạy Flyway migration để tạo toàn bộ bảng dữ liệu, biên dịch 7 microservices Java và ứng dụng Next.js.
+Đây là cách đơn giản và an toàn nhất: hệ thống tự động khởi tạo cơ sở dữ liệu PostgreSQL, chạy Flyway migration để nạp toàn bộ cấu trúc bảng và dữ liệu mẫu (110 giống hoa, 20 sản phẩm hoa, tài khoản thử nghiệm), biên dịch cụm 7 microservices Java và ứng dụng Next.js.
 
-Mở terminal (PowerShell trên Windows, hoặc Terminal trên macOS/Linux) tại thư mục gốc của dự án:
+Mở terminal (PowerShell trên Windows, hoặc Terminal trên macOS/Linux) tại thư mục gốc của dự án và chạy lần lượt các bước:
 
 ```bash
-# Bước 1: Sao chép file biến môi trường mẫu (nếu chưa có file .env)
+# Bước 1: Sao chép file cấu hình biến môi trường mẫu (nếu chưa có file .env)
 cp .env.example .env
 
-# Bước 2: Khởi động toàn bộ 9 container ngầm trong nền
+# Bước 2: Tải base image, biên dịch mã nguồn và khởi động ngầm 9 containers
 docker compose up -d --build
+
+# Bước 3: Kiểm tra trạng thái đảm bảo cả 9 containers đã ở trạng thái "Up"
+docker compose ps
 ```
 
-Quá trình build và khởi động lần đầu sẽ mất khoảng 2 - 3 phút để tải base image và biên dịch mã nguồn.
+> [!TIP]
+> - Quá trình build và khởi động lần đầu sẽ mất khoảng 2 - 3 phút để tải base image và biên dịch mã nguồn.
+> - Sau khi chạy lệnh ở Bước 2, **bắt buộc chạy lệnh Bước 3 (`docker compose ps`)** để kiểm tra chắc chắn toàn bộ **9 container** đều đã `Up` và lành mạnh (`healthy` đối với database) trước khi truy cập trình duyệt:
+>   - `cua_hang_hoa_flora-postgres-1` (Cơ sở dữ liệu - Up / healthy)
+>   - `cua_hang_hoa_flora-api-gateway-1` (Cổng API Gateway - Up)
+>   - `cua_hang_hoa_flora-identity-1` (Xác thực người dùng - Up)
+>   - `cua_hang_hoa_flora-catalog-1` (Danh mục sản phẩm hoa - Up)
+>   - `cua_hang_hoa_flora-inventory-1` (Quản lý kho hoa - Up)
+>   - `cua_hang_hoa_flora-order-1` (Đơn hàng & giỏ hàng - Up)
+>   - `cua_hang_hoa_flora-payment-1` (Thanh toán - Up)
+>   - `cua_hang_hoa_flora-customer-1` (Khách hàng & đánh giá - Up)
+>   - `cua_hang_hoa_flora-frontend-1` (Giao diện Next.js - Up)
 
-Sau khi lệnh hoàn tất, toàn bộ hệ thống đã sẵn sàng phục vụ tại:
+#### Bước 4: Mở trình duyệt và truy cập ứng dụng
+Khi cả 9 container đã sẵn sàng:
 - **Website FLORA**: [http://localhost:3000](http://localhost:3000)
 - **API Gateway**: [http://localhost:8080](http://localhost:8080)
+- **Cổng Quản trị viên**: [http://localhost:3000/admin](http://localhost:3000/admin)
+- **Cổng Nhân viên xử lý đơn**: [http://localhost:3000/nhan-vien](http://localhost:3000/nhan-vien)
 
 ---
 
-### 7.3. Cách kiểm tra trạng thái hoạt động và xem log
+### 7.3. Cách xem log kiểm tra và xử lý sự cố (Troubleshooting)
 
-#### Kiểm tra danh sách container đang chạy:
-```bash
-docker compose ps
-```
-Bạn sẽ thấy đầy đủ **9 container** đều ở trạng thái `Up`:
-- `cua_hang_hoa_flora-postgres-1` (Cơ sở dữ liệu)
-- `cua_hang_hoa_flora-api-gateway-1` (Cổng API)
-- `cua_hang_hoa_flora-identity-1` (Xác thực người dùng)
-- `cua_hang_hoa_flora-catalog-1` (Danh mục sản phẩm hoa)
-- `cua_hang_hoa_flora-inventory-1` (Quản lý kho hoa)
-- `cua_hang_hoa_flora-order-1` (Đơn hàng & giỏ hàng)
-- `cua_hang_hoa_flora-payment-1` (Thanh toán)
-- `cua_hang_hoa_flora-customer-1` (Khách hàng & đánh giá)
-- `cua_hang_hoa_flora-frontend-1` (Giao diện người dùng)
+Nếu muốn theo dõi quá trình chạy hoặc kiểm tra lỗi của từng dịch vụ:
 
-#### Xem log của toàn hệ thống theo thời gian thực:
+#### Xem log của toàn bộ hệ thống theo thời gian thực:
 ```bash
 docker compose logs -f
 ```
 
-#### Xem log của riêng một dịch vụ cụ thể (Ví dụ xem log của order-service hoặc frontend):
+#### Xem log của riêng một dịch vụ cụ thể:
 ```bash
+# Xem log dịch vụ đơn hàng
 docker compose logs -f order
-docker compose logs -f frontend
+
+# Xem log dịch vụ danh mục sản phẩm
 docker compose logs -f catalog
+
+# Xem log giao diện người dùng
+docker compose logs -f frontend
 ```
 *(Bấm `Ctrl + C` để thoát màn hình theo dõi log)*.
+
+#### Khởi động lại nhanh một dịch vụ khi cần:
+```bash
+docker compose restart <tên-dịch-vụ>
+# Ví dụ: docker compose restart order
+```
 
 ---
 
