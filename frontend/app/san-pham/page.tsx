@@ -88,27 +88,29 @@ export default async function ProductCatalog({
   let flowerTypes: FlowerType[] = [];
   let colors: Color[] = [];
 
-  try {
-    [items, categories, occasions, flowerTypes, colors] = await Promise.all([
-      fetchCatalog({
-        q,
-        category,
-        occasion,
-        flowerType,
-        color,
-        minPrice,
-        maxPrice,
-        sort,
-        size: 50,
-      }),
-      getCategories(),
-      getOccasions(),
-      getFlowerTypes(),
-      getColors(),
-    ]);
-  } catch {
-    /* Handle error gracefully */
-  }
+  const results = await Promise.allSettled([
+    fetchCatalog({
+      q,
+      category,
+      occasion,
+      flowerType,
+      color,
+      minPrice,
+      maxPrice,
+      sort,
+      size: 100,
+    }),
+    getCategories(),
+    getOccasions(),
+    getFlowerTypes(),
+    getColors(),
+  ]);
+
+  if (results[0].status === "fulfilled") items = results[0].value;
+  if (results[1].status === "fulfilled") categories = results[1].value;
+  if (results[2].status === "fulfilled") occasions = results[2].value;
+  if (results[3].status === "fulfilled") flowerTypes = results[3].value;
+  if (results[4].status === "fulfilled") colors = results[4].value;
 
   const currentParams: Record<string, string | number | undefined> = {
     q: q || undefined,

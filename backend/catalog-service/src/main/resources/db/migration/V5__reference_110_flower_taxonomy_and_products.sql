@@ -993,7 +993,7 @@ ON CONFLICT (id) DO UPDATE SET
 -- Upsert Primary Image
 DELETE FROM catalog.product_images WHERE product_id = '10000000-0000-0000-0000-000000000015';
 INSERT INTO catalog.product_images(id, product_id, url, alt_text, sort_order, is_primary)
-VALUES (gen_random_uuid(), '10000000-0000-0000-0000-000000000015', 'https://images.unsplash.com/photo-1589244159943-460088ed5c92?auto=format&fit=crop&w=800&q=80', 'Hộp Hoa Pink O''Hara Hương Thơm', 1, true);
+VALUES (gen_random_uuid(), '10000000-0000-0000-0000-000000000015', 'https://images.unsplash.com/photo-1559563458-527698bf5295?auto=format&fit=crop&w=800&q=80', 'Hộp Hoa Pink O''Hara Hương Thơm', 1, true);
 DELETE FROM catalog.product_colors WHERE product_id = '10000000-0000-0000-0000-000000000015';
 INSERT INTO catalog.product_colors(product_id, color_id)
 SELECT '10000000-0000-0000-0000-000000000015', id FROM catalog.colors WHERE name = 'Hồng'

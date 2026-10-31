@@ -51,21 +51,22 @@ export async function fetchCatalog(options: {
   if (options.maxPrice !== undefined) url.searchParams.set("max_price", options.maxPrice.toString());
   if (options.sort) url.searchParams.set("sort", options.sort);
   if (options.page !== undefined) url.searchParams.set("page", options.page.toString());
-  if (options.size !== undefined) url.searchParams.set("size", options.size.toString());
+  const fetchSize = options.size !== undefined ? options.size : 100;
+  url.searchParams.set("size", fetchSize.toString());
 
-  const response = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(8000) });
+  const response = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(15000) });
   if (!response.ok) throw new Error("Không thể tải danh mục sản phẩm");
   return response.json() as Promise<Product[]>;
 }
 
-export async function products(q = ""): Promise<Product[]> {
-  return fetchCatalog({ q });
+export async function products(q = "", size = 100): Promise<Product[]> {
+  return fetchCatalog({ q, size });
 }
 
 export async function productDetail(idOrSlug: string): Promise<Product | null> {
   const url = new URL("/api/products/" + idOrSlug, getBase());
   try {
-    const response = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(8000) });
+    const response = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(15000) });
     if (!response.ok) return null;
     return response.json() as Promise<Product>;
   } catch {
@@ -75,7 +76,7 @@ export async function productDetail(idOrSlug: string): Promise<Product | null> {
 
 export async function getCategories(): Promise<Category[]> {
   try {
-    const res = await fetch(getBase() + "/api/categories", { cache: "no-store", signal: AbortSignal.timeout(5000) });
+    const res = await fetch(getBase() + "/api/categories", { cache: "no-store", signal: AbortSignal.timeout(15000) });
     return res.ok ? await res.json() : [];
   } catch {
     return [];
@@ -84,7 +85,7 @@ export async function getCategories(): Promise<Category[]> {
 
 export async function getOccasions(): Promise<Occasion[]> {
   try {
-    const res = await fetch(getBase() + "/api/occasions", { cache: "no-store", signal: AbortSignal.timeout(5000) });
+    const res = await fetch(getBase() + "/api/occasions", { cache: "no-store", signal: AbortSignal.timeout(15000) });
     return res.ok ? await res.json() : [];
   } catch {
     return [];
@@ -93,7 +94,7 @@ export async function getOccasions(): Promise<Occasion[]> {
 
 export async function getFlowerTypes(): Promise<FlowerType[]> {
   try {
-    const res = await fetch(getBase() + "/api/flower-types", { cache: "no-store", signal: AbortSignal.timeout(5000) });
+    const res = await fetch(getBase() + "/api/flower-types", { cache: "no-store", signal: AbortSignal.timeout(15000) });
     return res.ok ? await res.json() : [];
   } catch {
     return [];
@@ -102,7 +103,7 @@ export async function getFlowerTypes(): Promise<FlowerType[]> {
 
 export async function getColors(): Promise<Color[]> {
   try {
-    const res = await fetch(getBase() + "/api/colors", { cache: "no-store", signal: AbortSignal.timeout(5000) });
+    const res = await fetch(getBase() + "/api/colors", { cache: "no-store", signal: AbortSignal.timeout(15000) });
     return res.ok ? await res.json() : [];
   } catch {
     return [];

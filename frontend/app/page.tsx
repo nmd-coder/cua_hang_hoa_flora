@@ -1,23 +1,23 @@
 import { ProductCard } from "../components/ProductCard";
-import { products, getCategories, getOccasions, type Category, type Occasion } from "../lib/catalog";
+import { products, getCategories, getOccasions, type Category, type Occasion, type Product } from "../lib/catalog";
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ q?: string; error?: string; notice?: string }> }) {
   const params = await searchParams;
   const q = params.q || "";
 
-  let items = null;
+  let items: Product[] | null = null;
   let categories: Category[] = [];
   let occasions: Occasion[] = [];
 
-  try {
-    [items, categories, occasions] = await Promise.all([
-      products(q),
-      getCategories(),
-      getOccasions(),
-    ]);
-  } catch {
-    /* Handle error gracefully */
-  }
+  const results = await Promise.allSettled([
+    products(q, 100),
+    getCategories(),
+    getOccasions(),
+  ]);
+
+  if (results[0].status === "fulfilled") items = results[0].value;
+  if (results[1].status === "fulfilled") categories = results[1].value;
+  if (results[2].status === "fulfilled") occasions = results[2].value;
 
   return (
     <>

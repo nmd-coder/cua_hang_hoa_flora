@@ -37,7 +37,7 @@ public class ProductController {
     }
 
     public List<Map<String, Object>> list(String q, int page, int size) {
-        return list(q, null, null, null, null, null, null, "newest", "ACTIVE", page, size);
+        return list(q, null, null, null, null, null, null, "newest", "ACTIVE", page, size > 0 ? size : 100);
     }
 
     @GetMapping("/api/products")
@@ -52,9 +52,9 @@ public class ProductController {
             @RequestParam(defaultValue = "newest") String sort,
             @RequestParam(defaultValue = "ACTIVE") String status,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "12") int size) {
+            @RequestParam(defaultValue = "100") int size) {
 
-        if (q.length() > 100 || page < 0 || page > 10000 || size < 1 || size > 100) {
+        if (q.length() > 100 || page < 0 || page > 10000 || size < 1 || size > 200) {
             throw new IllegalArgumentException("Tham số tìm kiếm không hợp lệ");
         }
 

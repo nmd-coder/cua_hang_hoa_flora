@@ -22,29 +22,29 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       const meRes = await fetch(getBase() + "/api/auth/me", {
         headers: { Authorization: "Bearer " + token },
         cache: "no-store",
-        signal: AbortSignal.timeout(4000),
+        signal: AbortSignal.timeout(10000),
       });
       if (meRes.ok) userProfile = await meRes.json();
 
-      const [cartRes, wishRes] = await Promise.all([
+      const [cartSettled, wishSettled] = await Promise.allSettled([
         fetch(getBase() + "/api/cart", {
           headers: { Authorization: "Bearer " + token },
           cache: "no-store",
-          signal: AbortSignal.timeout(4000),
+          signal: AbortSignal.timeout(10000),
         }),
         fetch(getBase() + "/api/customer/wishlist", {
           headers: { Authorization: "Bearer " + token },
           cache: "no-store",
-          signal: AbortSignal.timeout(4000),
+          signal: AbortSignal.timeout(10000),
         }),
       ]);
 
-      if (cartRes.ok) {
-        const cartItems = await cartRes.json() as { quantity: number }[];
+      if (cartSettled.status === "fulfilled" && cartSettled.value.ok) {
+        const cartItems = await cartSettled.value.json() as { quantity: number }[];
         cartCount = cartItems.reduce((acc, curr) => acc + (curr.quantity || 1), 0);
       }
-      if (wishRes.ok) {
-        const wishItems = await wishRes.json() as string[];
+      if (wishSettled.status === "fulfilled" && wishSettled.value.ok) {
+        const wishItems = await wishSettled.value.json() as string[];
         wishlistCount = Array.isArray(wishItems) ? wishItems.length : 0;
       }
     } catch {
