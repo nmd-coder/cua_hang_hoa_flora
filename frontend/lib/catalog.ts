@@ -5,6 +5,7 @@ export type Product = {
   slug: string;
   description: string | null;
   price: number;
+  original_price?: number | null;
   status: string;
   image: string | null;
   category_name?: string | null;

@@ -123,7 +123,22 @@ export default async function ProductDetailPage({
             <span className="stock-badge stock-in">Còn hàng</span>
           </div>
 
-          <div className="detail-price">{price(product.price)}</div>
+          {product.original_price && product.original_price > product.price ? (
+            <div className="detail-pricing-box">
+              <div className="detail-price-main">
+                <span className="detail-price">{price(product.price)}</span>
+                <span className="detail-original-price">{price(product.original_price)}</span>
+                <span className="detail-discount-badge">
+                  -{Math.round((1 - product.price / product.original_price) * 100)}%
+                </span>
+              </div>
+              <div className="detail-savings-text">
+                🎉 Tiết kiệm <strong>{price(product.original_price - product.price)}</strong> so với giá niêm yết
+              </div>
+            </div>
+          ) : (
+            <div className="detail-price">{price(product.price)}</div>
+          )}
 
           {product.description && (
             <p style={{ lineHeight: 1.7, marginBottom: "1.2rem", color: "var(--text-main)" }}>

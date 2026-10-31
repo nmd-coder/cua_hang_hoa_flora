@@ -4,6 +4,10 @@ import { addToCart } from "../app/actions";
 
 export function ProductCard({ product }: { product: Product }) {
   const detailUrl = "/san-pham/" + (product.slug || product.id);
+  const hasDiscount = Boolean(product.original_price && product.original_price > product.price);
+  const discountPercent = hasDiscount
+    ? Math.round((1 - product.price / product.original_price!) * 100)
+    : 0;
 
   return (
     <article className="flower-card">
@@ -20,6 +24,9 @@ export function ProductCard({ product }: { product: Product }) {
           )}
         </a>
         <span className="card-badge-floating">⚡ Giao 2h</span>
+        {hasDiscount && (
+          <span className="card-badge-discount">-{discountPercent}%</span>
+        )}
       </div>
 
       <div className="flower-card-body">
@@ -41,8 +48,13 @@ export function ProductCard({ product }: { product: Product }) {
         )}
 
         <div className="flower-card-price-row">
-          <span className="price-label">Giá chỉ từ</span>
-          <div className="flower-card-price">{price(product.price)}</div>
+          <span className="price-label">Giá ưu đãi</span>
+          <div className="flower-card-price-cluster">
+            <span className="flower-card-price">{price(product.price)}</span>
+            {hasDiscount && (
+              <span className="flower-card-original-price">{price(product.original_price!)}</span>
+            )}
+          </div>
         </div>
 
         <div className="flower-card-actions">

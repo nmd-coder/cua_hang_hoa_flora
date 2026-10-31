@@ -59,7 +59,7 @@ public class ProductController {
         }
 
         StringBuilder sql = new StringBuilder("""
-            SELECT p.id, p.sku, p.name, p.slug, p.description, p.price, p.status,
+            SELECT p.id, p.sku, p.name, p.slug, p.description, p.price, p.original_price, p.status,
                    c.name AS category_name, c.slug AS category_slug,
                    (SELECT i.url FROM catalog.product_images i WHERE i.product_id = p.id ORDER BY i.is_primary DESC, i.sort_order LIMIT 1) AS image
             FROM catalog.products p
@@ -140,7 +140,7 @@ public class ProductController {
     public ResponseEntity<Map<String, Object>> detail(@PathVariable String identifier) {
         boolean isUuid = identifier.matches("[0-9a-fA-F-]{36}");
         String query = """
-            SELECT p.id, p.category_id, p.sku, p.name, p.slug, p.description, p.price, p.status,
+            SELECT p.id, p.category_id, p.sku, p.name, p.slug, p.description, p.price, p.original_price, p.status,
                    p.weight_g, p.length_cm, p.width_cm, p.height_cm, p.created_at, p.updated_at,
                    c.name AS category_name, c.slug AS category_slug
             FROM catalog.products p
@@ -206,6 +206,7 @@ public class ProductController {
             String slug,
             String description,
             BigDecimal price,
+            BigDecimal originalPrice,
             UUID categoryId,
             String imageUrl,
             Integer weightG,
@@ -229,9 +230,9 @@ public class ProductController {
         String slug = req.slug() != null && !req.slug().isBlank() ? req.slug().trim() : req.name().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "-") + "-" + id.toString().substring(0, 4);
 
         db.update("""
-            INSERT INTO catalog.products(id, category_id, sku, name, slug, description, price, status, weight_g, length_cm, width_cm, height_cm)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?, ?, ?, ?)
-            """, id, req.categoryId(), sku, req.name().trim(), slug, req.description(), req.price(),
+            INSERT INTO catalog.products(id, category_id, sku, name, slug, description, price, original_price, status, weight_g, length_cm, width_cm, height_cm)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?, ?, ?, ?)
+            """, id, req.categoryId(), sku, req.name().trim(), slug, req.description(), req.price(), req.originalPrice(),
             req.weightG() != null ? req.weightG() : 500,
             req.lengthCm() != null ? req.lengthCm() : 30,
             req.widthCm() != null ? req.widthCm() : 25,
@@ -275,6 +276,7 @@ public class ProductController {
             SET name = COALESCE(?, name),
                 description = COALESCE(?, description),
                 price = COALESCE(?, price),
+                original_price = COALESCE(?, original_price),
                 category_id = COALESCE(?, category_id),
                 weight_g = COALESCE(?, weight_g),
                 length_cm = COALESCE(?, length_cm),
@@ -282,7 +284,7 @@ public class ProductController {
                 height_cm = COALESCE(?, height_cm),
                 updated_at = now()
             WHERE id = ?
-            """, req.name(), req.description(), req.price(), req.categoryId(),
+            """, req.name(), req.description(), req.price(), req.originalPrice(), req.categoryId(),
             req.weightG(), req.lengthCm(), req.widthCm(), req.heightCm(), id);
 
         if (req.imageUrl() != null && !req.imageUrl().isBlank()) {
