@@ -52,7 +52,7 @@ flowchart TD
     User["👤 Khách hàng / Nhân viên / Admin"] -->|Truy cập trình duyệt / Mobile| FE["🖥️ Next.js 15 App Router (Port 3000)"]
     FE -->|REST API + Bearer Token| GW["🛡️ API Gateway - Spring Cloud Gateway (Port 8080)"]
     
-    subgraph Microservices Backend [Cụm Microservices Backend Java 21 - Spring Boot 3.4.5]
+    subgraph MS_BACKEND ["Cụm Microservices Backend Java 21 - Spring Boot 3.4.5"]
         GW -->|/api/auth, /api/identity| ID["🔐 Identity Service (Port 8081)"]
         GW -->|/api/products, /api/categories| CAT["💐 Catalog Service (Port 8082)"]
         GW -->|/api/inventory, /api/admin/inventory| INV["📦 Inventory Service (Port 8083)"]
@@ -61,7 +61,7 @@ flowchart TD
         GW -->|/api/customer, /api/reviews| CUS["👥 Customer Service (Port 8086)"]
     end
 
-    subgraph Database Cluster [PostgreSQL 16 Multi-Schema Database: flora (Port 5432)]
+    subgraph DB_CLUSTER ["PostgreSQL 16 Multi-Schema Database: flora (Port 5432)"]
         ID -->|Schema| DB_ID[("identity")]
         CAT -->|Schema| DB_CAT[("catalog")]
         INV -->|Schema| DB_INV[("inventory")]
@@ -130,7 +130,7 @@ flowchart TD
 ### 4.4. `inventory-service` (Port `8083` — Schema `inventory`)
 - **Nhiệm vụ**: Quản lý số lượng tồn kho từng sản phẩm hoa tươi theo thời gian thực.
 - **Bộ 3 chỉ số tồn kho**:
-  $$\text{Tồn khả dụng (available)} = \text{Tồn thực tế (on\_hand)} - \text{Tồn đang giữ cho đơn chờ (reserved)}$$
+  > `Tồn khả dụng (available) = Tồn thực tế (on_hand) - Tồn đang giữ cho đơn chờ (reserved)`
 - **Biến động kho (`stock_movements`)**: Mọi lần nhập hàng, giữ hàng cho đơn mới, giải phóng tồn khi hủy đơn hoặc điều chỉnh hao hụt đều được ghi vết lịch sử kèm lý do cụ thể.
 
 ### 4.5. `order-service` (Port `8084` — Schema `order`)
@@ -161,21 +161,16 @@ flowchart TD
 Hệ thống quản lý trạng thái đơn hàng chặt chẽ qua 6 giai đoạn rõ ràng:
 
 ```mermaid
-stateDiagram-v2
-    [*] --> PENDING: Khách đặt hàng thành công (Đơn chờ xử lý, Tồn kho được GIỮ)
-    
-    PENDING --> PROCESSING: Nhân viên tiếp nhận đơn (Nghệ nhân bắt đầu cắm hoa)
-    PENDING --> CANCELLED: Khách hàng tự hủy đơn / Admin hủy đơn (Tồn kho được NHẢ)
-    
-    PROCESSING --> SHIPPED: Hoa cắm xong, bàn giao Shipper (Đang giao hỏa tốc)
-    PROCESSING --> CANCELLED: Admin can thiệp hủy (kèm hoàn tiền nếu có)
-    
-    SHIPPED --> COMPLETED: Shipper giao hoa thành công tới tay người nhận
-    
-    COMPLETED --> RECEIVED: Khách hàng bấm xác nhận "Đã nhận được hoa"
-    
-    RECEIVED --> [*]: Cho phép Khách gửi Đánh giá (Review ★★★★★)
-    CANCELLED --> [*]: Kết thúc đơn hủy (Giải phóng tồn kho)
+flowchart TD
+    S0(["● Bắt đầu"]) --> PENDING["⏳ PENDING: Chờ xử lý (Giữ tồn kho)"]
+    PENDING -->|Nhân viên tiếp nhận| PROCESSING["✂️ PROCESSING: Bắt đầu cắm hoa"]
+    PENDING -->|Khách hàng hoặc Admin hủy| CANCELLED["❌ CANCELLED: Hủy đơn (Nhả tồn kho)"]
+    PROCESSING -->|Bàn giao shipper| SHIPPED["🚚 SHIPPED: Đang giao hỏa tốc 2h"]
+    PROCESSING -->|Admin can thiệp hủy| CANCELLED
+    SHIPPED -->|Giao thành công| COMPLETED["💐 COMPLETED: Đã giao tới người nhận"]
+    COMPLETED -->|Khách bấm xác nhận| RECEIVED["⭐ RECEIVED: Đã nhận hoa (Mở đánh giá)"]
+    RECEIVED --> E0(["● Hoàn tất"])
+    CANCELLED --> E0
 ```
 
 > [!IMPORTANT]
@@ -186,11 +181,11 @@ stateDiagram-v2
 1. Khi khách hàng bấm **Đặt hàng** tại `/thanh-toan`:
    - `order-service` gọi `inventory-service` bằng endpoint nội bộ:  
      `POST /api/inventory/reserve`
-   - `inventory-service` kiểm tra: Nếu $\text{available} \ge \text{quantity}$ thì tăng $\text{reserved} \mathrel{+}= \text{quantity}$. Quá trình này được bảo vệ bởi câu lệnh SQL Update nguyên tử (`atomic UPDATE WHERE available >= requested`), loại bỏ triệt để nguy cơ Race Condition khi nhiều người cùng đặt bó hoa cuối cùng.
+   - `inventory-service` kiểm tra: Nếu `available >= quantity` thì tăng `reserved += quantity`. Quá trình này được bảo vệ bởi câu lệnh SQL Update nguyên tử (`atomic UPDATE WHERE available >= requested`), loại bỏ triệt để nguy cơ Race Condition khi nhiều người cùng đặt bó hoa cuối cùng.
 2. Nếu đơn hàng bị hủy (`CANCELLED`):
    - `order-service` tự động phát tín hiệu:  
      `POST /api/inventory/release`
-   - `inventory-service` giảm $\text{reserved} \mathrel{-}= \text{quantity}$, trả lại số hoa khả dụng cho người khác mua ngay lập tức mà không cần can thiệp thủ công.
+   - `inventory-service` giảm `reserved -= quantity`, trả lại số hoa khả dụng cho người khác mua ngay lập tức mà không cần can thiệp thủ công.
 
 ### 5.3. Định giá đa tầng: Giá niêm yết, Giá ưu đãi & Voucher
 Để kích thích mua sắm và tạo cảm giác nhận được giá trị xứng đáng, FLORA áp dụng cơ chế 3 mức giá minh bạch:
