@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { adminUpdateOrderStatus } from "../../actions";
 import { price } from "../../../lib/catalog";
+import { formatOrderStatus, formatPaymentStatus } from "../../../lib/order";
 
 const base = process.env.GATEWAY_URL || "http://localhost:8080";
 
@@ -87,12 +88,12 @@ export default async function AdminOrdersPage({
       <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", margin: "1rem 0" }}>
         {[
           { label: "Tất cả", val: "" },
-          { label: "PENDING", val: "PENDING" },
-          { label: "PROCESSING", val: "PROCESSING" },
-          { label: "SHIPPED", val: "SHIPPED" },
-          { label: "COMPLETED", val: "COMPLETED" },
-          { label: "RECEIVED", val: "RECEIVED" },
-          { label: "CANCELLED", val: "CANCELLED" },
+          { label: "Chờ xử lý", val: "PENDING" },
+          { label: "Đang chuẩn bị", val: "PROCESSING" },
+          { label: "Đang giao", val: "SHIPPED" },
+          { label: "Hoàn tất", val: "COMPLETED" },
+          { label: "Khách đã nhận", val: "RECEIVED" },
+          { label: "Đã hủy", val: "CANCELLED" },
         ].map(tab => (
           <a
             key={tab.val}
@@ -148,11 +149,11 @@ export default async function AdminOrdersPage({
                 <td>
                   <span style={{ fontSize: "0.85rem" }}>{o.payment_method}</span><br />
                   <span style={{ fontSize: "0.8rem", color: o.payment_status === "PAID" ? "#137333" : "var(--text-muted)" }}>
-                    {o.payment_status}
+                    {formatPaymentStatus(o.payment_status)}
                   </span>
                 </td>
                 <td>
-                  <span className={`status-pill status-${o.status}`}>{o.status}</span>
+                  <span className={`status-pill status-${o.status}`}>{formatOrderStatus(o.status)}</span>
                 </td>
                 <td>
                   {o.status === "PENDING" && (

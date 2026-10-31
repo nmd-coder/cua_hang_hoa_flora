@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 class ProductProxyTest {
     @Test void rejectsInvalidId() {
         var proxy = new ProductProxy("http://127.0.0.1:1");
-        assertEquals(400, proxy.products("bad", "", 0, 12).getStatusCode().value());
+        assertEquals(400, proxy.products("bad id! /", "", 0, 12).getStatusCode().value());
     }
     @Test void forwardsCatalogResponse() throws Exception {
         var server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);

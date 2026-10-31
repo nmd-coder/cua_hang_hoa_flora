@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { staffUpdateOrderStatus } from "../actions";
 import { price } from "../../lib/catalog";
+import { formatOrderStatus, formatPaymentStatus } from "../../lib/order";
 
 import { getGatewayUrl } from "../../lib/config";
 
@@ -95,11 +96,11 @@ export default async function StaffPortalPage({
       <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", margin: "1rem 0" }}>
         {[
           { label: "Tất cả", val: "" },
-          { label: "Chờ tiếp nhận (PENDING)", val: "PENDING" },
-          { label: "Đang cắm hoa (PROCESSING)", val: "PROCESSING" },
-          { label: "Đang giao (SHIPPED)", val: "SHIPPED" },
-          { label: "Hoàn tất (COMPLETED)", val: "COMPLETED" },
-          { label: "Đã hủy (CANCELLED)", val: "CANCELLED" },
+          { label: "Chờ tiếp nhận", val: "PENDING" },
+          { label: "Đang chuẩn bị hoa", val: "PROCESSING" },
+          { label: "Đang giao", val: "SHIPPED" },
+          { label: "Hoàn tất", val: "COMPLETED" },
+          { label: "Đã hủy", val: "CANCELLED" },
         ].map(tab => (
           <a
             key={tab.val}
@@ -131,7 +132,7 @@ export default async function StaffPortalPage({
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: "0.8rem" }}>
                     <strong style={{ fontSize: "1.2rem" }}>{o.order_code}</strong>
-                    <span className={`status-pill status-${o.status}`}>{o.status}</span>
+                    <span className={`status-pill status-${o.status}`}>{formatOrderStatus(o.status)}</span>
                     <span style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>
                       Đặt lúc: {new Date(o.created_at).toLocaleString("vi-VN")}
                     </span>
@@ -147,7 +148,7 @@ export default async function StaffPortalPage({
                     {price(o.total)}
                   </div>
                   <span style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>
-                    COD: {o.payment_status}
+                    COD: {formatPaymentStatus(o.payment_status)}
                   </span>
                 </div>
               </div>

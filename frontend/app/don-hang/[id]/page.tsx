@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { gateway } from "../../../lib/checkout";
 import { price } from "../../../lib/catalog";
+import { formatOrderStatus, formatPaymentStatus } from "../../../lib/order";
 
 type Order = {
   id: string;
@@ -95,14 +96,14 @@ export default async function OrderDetailPage({
 
                 <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
                   <span className={`status-pill status-${order.status}`}>
-                    {order.status}
+                    {formatOrderStatus(order.status)}
                   </span>
                 </div>
               </div>
 
               {/* Exact strings required by test suites */}
-              <p>Trạng thái: {order.status}</p>
-              <p>Thanh toán COD: {order.payment_status === "UNPAID" ? "Chưa thu tiền" : order.payment_status}</p>
+              <p>Trạng thái: {formatOrderStatus(order.status)}</p>
+              <p>Thanh toán COD: {formatPaymentStatus(order.payment_status)}</p>
 
               {/* Actions based on status */}
               <div style={{ marginTop: "1.2rem", display: "flex", gap: "0.8rem", flexWrap: "wrap" }}>
@@ -151,7 +152,7 @@ export default async function OrderDetailPage({
                   {order.history.map((h, i) => (
                     <div key={i} style={{ fontSize: "0.88rem", paddingBottom: "0.5rem", borderBottom: i < order.history.length - 1 ? "1px solid var(--border)" : "none" }}>
                       <span className={`status-pill status-${h.to_status}`} style={{ marginRight: "0.5rem" }}>
-                        {h.to_status}
+                        {formatOrderStatus(h.to_status)}
                       </span>
                       <span style={{ color: "var(--text-muted)" }}>
                         {new Date(h.created_at).toLocaleString("vi-VN")}

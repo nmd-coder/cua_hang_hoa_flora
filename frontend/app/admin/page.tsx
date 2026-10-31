@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { price } from "../../lib/catalog";
+import { formatOrderStatus } from "../../lib/order";
 
 import { getGatewayUrl } from "../../lib/config";
 
@@ -162,7 +163,7 @@ export default async function AdminDashboardPage() {
                   <td>{o.recipient_name}</td>
                   <td>{new Date(o.created_at).toLocaleString("vi-VN")}</td>
                   <td><strong>{price(o.total)}</strong></td>
-                  <td><span className={`status-pill status-${o.status}`}>{o.status}</span></td>
+                  <td><span className={`status-pill status-${o.status}`}>{formatOrderStatus(o.status)}</span></td>
                   <td><a href={`/don-hang/${o.id}`} className="button button-sm button-secondary">Chi tiết</a></td>
                 </tr>
               ))}

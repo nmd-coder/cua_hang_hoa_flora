@@ -27,19 +27,35 @@ class ProductProxy {
             @PathVariable(required = false) String id,
             @RequestParam(defaultValue = "") String q,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "12") int size) {
-        if (id != null && !id.matches("[0-9a-fA-F-]{36}")) {
+            @RequestParam(defaultValue = "12") int size,
+            jakarta.servlet.http.HttpServletRequest request) {
+        if (id != null && !id.matches("^[a-zA-Z0-9_-]{1,120}$")) {
             return ResponseEntity.badRequest().body("{\"code\":\"INVALID_ID\"}");
         }
-        String path = id == null
-            ? UriComponentsBuilder.fromPath("/api/products").queryParam("q", q).queryParam("page", page).queryParam("size", size).build().encode().toUriString()
-            : "/api/products/" + id;
+        String path;
+        if (id != null) {
+            path = "/api/products/" + id;
+        } else if (request != null && request.getQueryString() != null) {
+            path = "/api/products?" + request.getQueryString();
+        } else {
+            path = UriComponentsBuilder.fromPath("/api/products")
+                    .queryParam("q", q)
+                    .queryParam("page", page)
+                    .queryParam("size", size)
+                    .build().encode().toUriString();
+        }
         try {
             return client.get().uri(path).exchange((req, res) ->
-                ResponseEntity.status(res.getStatusCode()).body(new String(res.getBody().readAllBytes(), StandardCharsets.UTF_8)));
+                ResponseEntity.status(res.getStatusCode())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(new String(res.getBody().readAllBytes(), StandardCharsets.UTF_8)));
         } catch (RestClientException | java.util.concurrent.CancellationException ex) {
             return ResponseEntity.status(503).body("{\"code\":\"CATALOG_UNAVAILABLE\",\"message\":\"Danh mục tạm thời không khả dụng\"}");
         }
+    }
+
+    public ResponseEntity<String> products(String id, String q, int page, int size) {
+        return products(id, q, page, size, null);
     }
 
     @RequestMapping(value = {

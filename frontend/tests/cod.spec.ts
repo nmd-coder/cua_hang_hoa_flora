@@ -41,13 +41,13 @@ test("register, log in and place one COD order from the browser",async({page,con
   await expect(page.getByText("Tổng COD:",{exact:false})).toContainText("380.000");
   await page.getByRole("button",{name:"Xác nhận đặt đơn COD",exact:true}).click();
   await expect(page).toHaveURL(/\/don-hang\/[0-9a-f-]{36}/);
-  await expect(page.getByText("Trạng thái: PENDING",{exact:true})).toBeVisible();
+  await expect(page.getByText("Trạng thái: Chờ xử lý",{exact:true})).toBeVisible();
   await expect(page.getByText("Thanh toán COD: Chưa thu tiền",{exact:true})).toBeVisible();
   const orderId=page.url().split("/").pop();
   const detail=await context.request.get("http://127.0.0.1:8080/api/orders/"+orderId,{headers:auth});
   expect(detail.status()).toBe(200);expect((await detail.json()).total).toBe(380000);
   await page.getByRole("button",{name:"Hủy đơn",exact:true}).click();
-  await expect(page.getByText("Trạng thái: CANCELLED",{exact:true})).toBeVisible();
+  await expect(page.getByText("Trạng thái: Đã hủy",{exact:true})).toBeVisible();
  }finally{
   if(!userId && /^browser-[0-9a-f-]{36}@example[.]test$/.test(email)){
    const result=execFileSync("docker",["compose","exec","-T","postgres","psql","-U","flora","-d","flora","-At","-c","SELECT id FROM identity.users WHERE email='"+email+"'"],{cwd:path.resolve(process.cwd(),".."),encoding:"utf8"});

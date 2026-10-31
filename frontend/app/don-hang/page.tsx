@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { gateway } from "../../lib/checkout";
 import { price } from "../../lib/catalog";
+import { formatOrderStatus } from "../../lib/order";
 
 type OrderItem = {
   id: string;
@@ -52,12 +53,12 @@ export default async function OrdersPage({
       <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", margin: "1.5rem 0" }}>
         {[
           { label: "Tất cả", val: "" },
-          { label: "Chờ xử lý (PENDING)", val: "PENDING" },
-          { label: "Đang cắm hoa (PROCESSING)", val: "PROCESSING" },
-          { label: "Đang giao (SHIPPED)", val: "SHIPPED" },
-          { label: "Đã giao (COMPLETED)", val: "COMPLETED" },
-          { label: "Đã nhận (RECEIVED)", val: "RECEIVED" },
-          { label: "Đã hủy (CANCELLED)", val: "CANCELLED" },
+          { label: "Chờ xử lý", val: "PENDING" },
+          { label: "Đang chuẩn bị hoa", val: "PROCESSING" },
+          { label: "Đang giao", val: "SHIPPED" },
+          { label: "Đã giao", val: "COMPLETED" },
+          { label: "Đã nhận", val: "RECEIVED" },
+          { label: "Đã hủy", val: "CANCELLED" },
         ].map(tab => (
           <a
             key={tab.val}
@@ -90,7 +91,7 @@ export default async function OrdersPage({
                     {o.order_code}
                   </a>
                   <span className={`status-pill status-${o.status}`}>
-                    {o.status}
+                    {formatOrderStatus(o.status)}
                   </span>
                 </div>
 
